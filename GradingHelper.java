@@ -36,7 +36,7 @@ public class GradingHelper {
 			{
 				AssignmentResults ar = new AssignmentResults(e.getName());
 				results.add(ar);
-				ar.findJavaFiles(e);
+				ar.findFiles(e);
 				if (ar.checkRequiredJavaFiles(programs))
 				{
 					if (ar.compileJavaFiles(e))

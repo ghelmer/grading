@@ -6,8 +6,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Check and record the results of processing a student's assignment.
@@ -95,17 +98,94 @@ public class AssignmentResults {
 	}
 	
 	/**
-	 * Recursively find the files in the directory.
-	 * If a subdirectory is encountered, go down into it.
-	 * If a zip file is found, unpack it into a directory by the
-	 * same name and add its unpacked files to the list.
-	 * If a regular file is found, add it to the list.
+	 * Organize BlackBoard download.
+	 * For each file in the directory, if it is in the form
+	 * Homework201_njvang_attempt_2011-09-02-20-09-43_BankAccount.java
+	 * then move the file into a directory <user>/<date>/<file>.
+	 * Then, for each user directory, find the Java files in the submissions (ordered by
+	 * date) and collect them in the user's directory for compilation and execution.
+	 * 
+	 */
+	public static void organizeBlackBoardFiles(File dir) throws IOException
+	{
+		if (!dir.isDirectory()) {
+			throw new IllegalArgumentException(dir.getName() + " is not a directory");
+		}
+		
+		/* First step: organize files into per-user / per-submission directories. */
+		File[] allFiles = dir.listFiles();
+		Pattern hwFilePattern = Pattern.compile("Homework[0-9]*_(.*)_attempt_([0-9-]*)[_.](.*)$");
+		for (File d : allFiles)
+		{
+			Matcher m = hwFilePattern.matcher(d.getName());
+			if (m.matches())
+			{
+				String user = m.group(1);
+				String date = m.group(2);
+				String fn = m.group(3);
+				if (fn.equals("txt"))
+				{
+					fn = "submission.txt";
+				}
+				File userDir = new File(dir.getAbsolutePath() + File.separator + user);
+				if (!userDir.isDirectory())
+				{
+					userDir.mkdir();
+				}
+				File submissionDir = new File(dir.getAbsolutePath() + File.separator + user + File.separator + date);
+				if (!submissionDir.isDirectory())
+				{
+					submissionDir.mkdir();
+				}
+				File destFile = new File(submissionDir.getAbsolutePath() + File.separator + fn);
+				d.renameTo(destFile);
+			}
+		}
+
+		allFiles = dir.listFiles();
+		Pattern submitPattern = Pattern.compile("^[0-9]+-");
+		for (File userDir : allFiles)
+		{
+			if (userDir.isDirectory())
+			{
+				ArrayList<String> submitDirs = new ArrayList<String>();
+				for (File subdir : userDir.listFiles())
+				{
+					Matcher m = submitPattern.matcher(subdir.getName());
+					if (m.matches())
+					{
+						submitDirs.add(subdir.getName());
+					}
+				}
+				Collections.sort(submitDirs);
+				for (String _submitDir : submitDirs)
+				{
+					File submitDir = new File(userDir.getAbsolutePath() + File.separator + _submitDir);
+					for (File f : submitDir.listFiles())
+					{
+						if (f.getName().endsWith(".java"))
+						{
+							/* Copy to user directory. */
+							File destFile = new File(userDir.getAbsolutePath() + File.separator + f.getName());
+							CopyFile.copy(f, destFile);
+						}
+					}
+				}
+				
+			}
+		}
+
+	}
+	
+	/**
+	 * Find the files in the directory.
+	 * Build a list of Java files and other files.
 	 * 
 	 * @param dir - Directory to examine
 	 * @return true if successful
 	 * @throws IOException
 	 */
-	public boolean findJavaFiles(File dir) throws IOException
+	public void findFiles(File dir) throws IOException
 	{
 		ArrayList<String> jfs = new ArrayList<String>();
 		ArrayList<String> ofs = new ArrayList<String>();
@@ -118,7 +198,11 @@ public class AssignmentResults {
 		{
 			if (e.endsWith(".java"))
 			{
-				jfs.add(e);
+				/* Only add files in the "root" to the list of Java files. */
+				if (e.indexOf(File.separator) == -1)
+				{
+					jfs.add(e);
+				}
 			}
 			else
 			{
@@ -127,16 +211,15 @@ public class AssignmentResults {
 		}
 		for (String s : jfs)
 		{
-			System.out.println("Found Java file " + s);
+			System.out.println(name + ": Found Java file " + s);
 		}
 		for (String s : ofs)
 		{
 			// Extract text from other files
-			System.out.println("Found other file " + s);
+			System.out.println(name + ": Found other file " + s);
 		}
 		javaFiles = jfs;
 		otherFiles = ofs;
-		return true;
 	}
 
 	/**
@@ -157,6 +240,11 @@ public class AssignmentResults {
 		}
 		for (File e : dir.listFiles())
 		{
+			if (e.getName().startsWith("."))
+			{
+				/* Ignore names starting with '.'. */
+				continue;
+			}
 			if (e.isDirectory())
 			{
 				/*
