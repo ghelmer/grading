@@ -193,7 +193,8 @@ public class AssignmentResults {
 		if (!dir.isDirectory()) {
 			throw new IllegalArgumentException(dir.getName() + " is not a directory");
 		}
-		ArrayList<String> allFiles = findFiles(dir, "");
+		ArrayList<String> allFiles = new ArrayList<String>();
+		findFiles(dir, "", allFiles);
 		for (String e : allFiles)
 		{
 			if (e.endsWith(".java"))
@@ -231,10 +232,8 @@ public class AssignmentResults {
 	 * relative path starting from the top-level directory.
 	 * @throws IOException
 	 */
-	public ArrayList<String> findFiles(File dir, String subdirName) throws IOException
+	public void findFiles(File dir, String subdirName, ArrayList<String> foundFiles) throws IOException
 	{
-		ArrayList<String> foundFiles = new ArrayList<String>();
-		
 		if (!dir.isDirectory()) {
 			throw new IllegalArgumentException(subdirName + dir.getName() + " is not a directory");
 		}
@@ -250,11 +249,7 @@ public class AssignmentResults {
 				/*
 				 * Enter the subdirectory and find its files.
 				 */
-				ArrayList<String> subdirFiles = findFiles(e, subdirName + e.getName() + File.separator);
-				for (String sf : subdirFiles)
-				{
-					foundFiles.add(sf);
-				}
+				findFiles(e, subdirName + e.getName() + File.separator, foundFiles);
 			}
 			else if (e.isFile())
 			{
@@ -279,7 +274,6 @@ public class AssignmentResults {
 				System.err.println(subdirName + e.getName() + " is not a directory or a file");
 			}
 		}
-		return foundFiles;
 	}
 
 	/**
