@@ -4,12 +4,11 @@ import net.bitform.api.options.ScrubOption;
 import net.bitform.api.secure.SecureOptions;
 import net.bitform.api.secure.SecureRequest;
 import net.bitform.api.secure.SecureResponse;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
 public class ExtractTextFromFile {
-	public void getText(String inputFile) {
+	public void getText(String inputFn, String outputFn) {
 
 		/**
 		 * Check the command line
@@ -17,7 +16,7 @@ public class ExtractTextFromFile {
 
 		File file = null;
 
-		file = new File(inputFile);
+		file = new File(inputFn);
 
 		if (!file.exists() || !file.isFile()) {
 			System.out.println(file.toString() + " is not a valid file");
@@ -30,7 +29,7 @@ public class ExtractTextFromFile {
 		SecureRequest request = new SecureRequest();
 		/* ScrubbedDocument: FileOption */
 		//File scrubbedFile = new File("/tmp/output.bin");
-		File outputFile = new File("/tmp/output.txt");
+		File outputFile = new File(outputFn);
 		request.setOption(SecureOptions.JustAnalyze, true);
 		//request.setOption(SecureOptions.ScrubbedDocument, scrubbedFile);
 		request.setOption(SecureOptions.SourceDocument, file);
