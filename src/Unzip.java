@@ -41,22 +41,32 @@ public class Unzip {
 		ZipInputStream zis = new 
 				ZipInputStream(new BufferedInputStream(fis));
 		ZipEntry entry;
-		while((entry = zis.getNextEntry()) != null) {
-			//System.out.println("Extracting: " +entry);
-			int count;
-			byte data[] = new byte[BUFFER];
-			// write the files to the disk
-			String newFileName = subdir + File.separator + entry.getName();
-			unpackedFiles.add(newFileName);
-			FileOutputStream fos = new 
-					FileOutputStream(f.getParent() + File.separator + newFileName);
-			dest = new 
-					BufferedOutputStream(fos, BUFFER);
-			while ((count = zis.read(data, 0, BUFFER)) != -1) {
-				dest.write(data, 0, count);
+		while ((entry = zis.getNextEntry()) != null) {
+			if (entry.isDirectory())
+			{
+				String newDirName = subdir + File.separator + entry.getName();
+				File newDir = new File(f.getParent() + File.separator + newDirName);
+				newDir.mkdirs();			
 			}
-			dest.flush();
-			dest.close();
+			else
+			{
+				//System.out.println("Extracting: " +entry);
+				int count;
+				byte data[] = new byte[BUFFER];
+				// write the files to the disk
+				String newFileName = subdir + File.separator + entry.getName();
+				unpackedFiles.add(newFileName);
+				File newFile = new File(f.getParent() + File.separator + newFileName);
+				newFile.getParentFile().mkdirs();
+				FileOutputStream fos = new FileOutputStream(newFile);
+				dest = new 
+						BufferedOutputStream(fos, BUFFER);
+				while ((count = zis.read(data, 0, BUFFER)) != -1) {
+					dest.write(data, 0, count);
+				}
+				dest.flush();
+				dest.close();
+			}
 		}
 		zis.close();
 		return unpackedFiles;
