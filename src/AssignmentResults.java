@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +12,7 @@ import java.util.Scanner;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipException;
 
 /**
  * Check and record the results of processing a student's assignment.
@@ -20,6 +22,8 @@ import java.util.regex.Pattern;
  */
 public class AssignmentResults {
 	private String name;
+	private File dir;
+	private ArrayList<String> userJavaFiles;
 	private ArrayList<String> javaFiles;
 	private ArrayList<String> otherFiles;
 	private ArrayList<String> missingFiles;
@@ -29,13 +33,16 @@ public class AssignmentResults {
 	/**
 	 * Create the object to store all the results of
 	 * processing a student's assignment submission.
-	 * @param name - Name of student
+	 * @param _name - Name of student
+	 * @param _dir - directory containing student submission files
 	 */
-	public AssignmentResults(String name)
+	public AssignmentResults(String _name, File _dir)
 	{
-		this.name = name;
+		name = _name;
+		dir = _dir;
 		missingFiles = new ArrayList<String>();
 		programOutputs = new HashMap<String,String>();
+		userJavaFiles = new ArrayList<String>();
 	}
 	
 	public String getName()
@@ -48,9 +55,9 @@ public class AssignmentResults {
 		StringBuffer r = new StringBuffer();
 		r.append("Name: " + name + "\n");
 		r.append("Java files found:\n");
-		if (javaFiles != null)
+		if (userJavaFiles != null)
 		{
-			for (String jf : javaFiles)
+			for (String jf : userJavaFiles)
 			{
 				r.append("\t" + jf + "\n");
 			}
@@ -63,7 +70,25 @@ public class AssignmentResults {
 		{
 			for (String of : otherFiles)
 			{
-				r.append("\t" + of + "\n");
+				r.append("--- Contents of " + of + " ---\n");
+				try
+				{
+					r.append(getDocumentText(of));
+				}
+				catch (IOException e)
+				{
+					StackTraceElement[] sts = e.getStackTrace();
+					StringBuffer sb = new StringBuffer();
+					sb.append("Exception:\n");
+					for (StackTraceElement st : sts)
+					{
+						sb.append('\t');
+						sb.append(st.toString());
+						sb.append('\n');
+					}
+					r.append("Exception: " + sb.toString());
+				}
+				r.append("\n--- End Contents of + " + of + " ---\n");
 			}
 		}
 		if (compilationOutput != null)
@@ -98,12 +123,73 @@ public class AssignmentResults {
 	}
 	
 	/**
+	 * Get the contents of the given file as a String.
+	 */
+	public String getFileAsString(File f) throws FileNotFoundException
+	{
+		StringBuffer sb = new StringBuffer();
+		Scanner in = new Scanner(f);
+		while (in.hasNextLine())
+		{
+			sb.append(in.nextLine());
+			sb.append('\n');
+		}
+		return sb.toString();
+	}
+	
+	/**
+	 * Return the text from a document in the submission.
+	 */
+	public String getDocumentText(String docFilename) throws IOException
+	{
+		File inputFile = new File(dir.getAbsolutePath() + File.separator + docFilename);
+		if (docFilename.endsWith(".txt"))
+		{
+			return getFileAsString(inputFile);
+		}
+		/* Otherwise: Use CleanContent to get text from file. */
+		File outputFile = File.createTempFile(inputFile.getName(), ".out", inputFile.getParentFile());
+		String about = ExtractTextFromFile.getText(inputFile, outputFile);
+		String s = getFileAsString(outputFile);
+		outputFile.delete();
+		return about + "::\n" + s;
+	}
+
+	/**
+	 * In the user directory, collect the Java files in the submissions (ordered by
+	 * date) in the user's directory for compilation and execution.
+	 * 
+	 */
+	public void copyJavaFilesToUser() throws IOException
+	{
+		Collections.sort(javaFiles);
+		for (String jFile : javaFiles)
+		{
+			/* Copy to user directory. */
+			File srcFile = new File(dir.getAbsolutePath() + File.separator + jFile);
+			File destFile = new File(dir.getAbsolutePath() + File.separator + srcFile.getName());
+			CopyFile.copy(srcFile, destFile);
+			boolean found = false;
+			for (int i = 0; i < userJavaFiles.size() && !found; i++)
+			{
+				if (userJavaFiles.get(i).equals(destFile.getName()))
+				{
+					found = true;
+				}
+			}
+			if (!found)
+			{
+				userJavaFiles.add(destFile.getName());
+			}
+		}
+		
+	}
+	
+	/**
 	 * Organize BlackBoard download.
 	 * For each file in the directory, if it is in the form
 	 * Homework201_njvang_attempt_2011-09-02-20-09-43_BankAccount.java
 	 * then move the file into a directory <user>/<date>/<file>.
-	 * Then, for each user directory, find the Java files in the submissions (ordered by
-	 * date) and collect them in the user's directory for compilation and execution.
 	 * 
 	 */
 	public static void organizeBlackBoardFiles(File dir) throws IOException
@@ -141,45 +227,11 @@ public class AssignmentResults {
 				d.renameTo(destFile);
 			}
 		}
-
-		allFiles = dir.listFiles();
-		Pattern submitPattern = Pattern.compile("^[0-9]+-");
-		for (File userDir : allFiles)
-		{
-			if (userDir.isDirectory())
-			{
-				ArrayList<String> submitDirs = new ArrayList<String>();
-				for (File subdir : userDir.listFiles())
-				{
-					Matcher m = submitPattern.matcher(subdir.getName());
-					if (m.matches())
-					{
-						submitDirs.add(subdir.getName());
-					}
-				}
-				Collections.sort(submitDirs);
-				for (String _submitDir : submitDirs)
-				{
-					File submitDir = new File(userDir.getAbsolutePath() + File.separator + _submitDir);
-					for (File f : submitDir.listFiles())
-					{
-						if (f.getName().endsWith(".java"))
-						{
-							/* Copy to user directory. */
-							File destFile = new File(userDir.getAbsolutePath() + File.separator + f.getName());
-							CopyFile.copy(f, destFile);
-						}
-					}
-				}
-				
-			}
-		}
-
 	}
 	
 	/**
 	 * Find the files in the directory.
-	 * Build a list of Java files and other files.
+	 * Build a list of the files.
 	 * 
 	 * @param dir - Directory to examine
 	 * @return true if successful
@@ -197,13 +249,14 @@ public class AssignmentResults {
 		findFiles(dir, "", allFiles);
 		for (String e : allFiles)
 		{
-			if (e.endsWith(".java"))
+			if (e.endsWith(".class"))
 			{
-				/* Only add files in the "root" to the list of Java files. */
-				if (e.indexOf(File.separator) == -1)
-				{
-					jfs.add(e);
-				}
+				/* Ignore. */
+				continue;
+			}
+			else if (e.endsWith(".java"))
+			{
+				jfs.add(e);
 			}
 			else
 			{
@@ -258,10 +311,17 @@ public class AssignmentResults {
 					/*
 					 * Extract and add files to list.
 					 */
-					ArrayList<String> unzippedFiles = Unzip.unzip(e);
-					for (String s : unzippedFiles)
+					try
 					{
-						foundFiles.add(subdirName + s);
+						ArrayList<String> unzippedFiles = Unzip.unzip(e);
+						for (String s : unzippedFiles)
+						{
+							foundFiles.add(subdirName + s);
+						}
+					}
+					catch (ZipException ze)
+					{
+						ze.printStackTrace();
 					}
 				}
 				else

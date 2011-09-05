@@ -24,26 +24,30 @@ public class GradingHelper {
 	 */
 	public ArrayList<AssignmentResults> processDirectory() throws IOException, InterruptedException
 	{
-		ArrayList<AssignmentResults> results = new ArrayList<AssignmentResults>();
+		/* Preprocessing: Organize files from BlackBoard assignment download. */
 		File rootDir = new File(rootDirectory);
 		if (!rootDir.isDirectory())
 		{
 			throw new IllegalArgumentException(rootDirectory + " is not a directory");
 		}
+		AssignmentResults.organizeBlackBoardFiles(rootDir);
+		
+		ArrayList<AssignmentResults> results = new ArrayList<AssignmentResults>();
 		for (File e : rootDir.listFiles())
 		{
 			if (e.isDirectory())
 			{
-				AssignmentResults ar = new AssignmentResults(e.getName());
+				AssignmentResults ar = new AssignmentResults(e.getName(), e);
 				results.add(ar);
 				ar.findFiles(e);
+				ar.copyJavaFilesToUser();
 				if (ar.checkRequiredJavaFiles(programs))
 				{
 					if (ar.compileJavaFiles(e))
 					{
 						ar.runJavaPrograms(programs, e);
 					}
-				}					
+				}
 			}
 		}
 		return results;
@@ -99,7 +103,7 @@ public class GradingHelper {
 		}
 		catch (IOException e)
 		{
-			System.err.println("Warning: Exception " + e.getMessage() + " while reading grading.conf");
+			e.printStackTrace();
 		}
 		catch (ParserConfigurationException e)
 		{
