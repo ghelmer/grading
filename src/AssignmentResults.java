@@ -353,9 +353,9 @@ public class AssignmentResults {
 			{
 				String className = clss + ".java";
 				boolean fileFound = false;
-				for (int i = 0; i < javaFiles.size() && !fileFound; i++)
+				for (int i = 0; i < userJavaFiles.size() && !fileFound; i++)
 				{
-					String foundFile = javaFiles.get(i);
+					String foundFile = userJavaFiles.get(i);
 					int lastSlash = foundFile.lastIndexOf(File.separator);
 					if (lastSlash != -1)
 					{
@@ -389,10 +389,10 @@ public class AssignmentResults {
 		StringBuffer output = new StringBuffer();
 		
 		Runtime r = Runtime.getRuntime();
-		String[] cmd = new String[javaFiles.size() + 1];
+		String[] cmd = new String[userJavaFiles.size() + 1];
 		cmd[0] = "javac";
-		for (int i = 1; i <= javaFiles.size(); i++)
-			cmd[i] = javaFiles.get(i - 1);
+		for (int i = 1; i <= userJavaFiles.size(); i++)
+			cmd[i] = userJavaFiles.get(i - 1);
 		Process result = r.exec(cmd, null, dir);
 		Scanner in = new Scanner(result.getErrorStream());
 		while (in.hasNextLine())
