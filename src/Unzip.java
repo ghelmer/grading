@@ -27,7 +27,7 @@ public class Unzip {
 			subdir = subdir.substring(0, dotOffset);
 		}
 		File subdirFile = new File(f.getParent() + File.separator + subdir);
-		if (!subdirFile.mkdir())
+		if (!subdirFile.isDirectory() && !subdirFile.mkdir())
 		{
 			throw new IOException("Could not create directory: " + subdirFile.getAbsolutePath());
 		}
@@ -46,7 +46,10 @@ public class Unzip {
 			{
 				String newDirName = subdir + File.separator + entry.getName();
 				File newDir = new File(f.getParent() + File.separator + newDirName);
-				newDir.mkdirs();			
+				if (!newDir.exists())
+				{
+					newDir.mkdirs();
+				}
 			}
 			else
 			{
@@ -55,7 +58,10 @@ public class Unzip {
 				byte data[] = new byte[BUFFER];
 				// write the files to the disk
 				String newFileName = subdir + File.separator + entry.getName();
-				unpackedFiles.add(newFileName);
+				if (!entry.getName().startsWith("."))
+				{
+					unpackedFiles.add(newFileName);
+				}
 				File newFile = new File(f.getParent() + File.separator + newFileName);
 				newFile.getParentFile().mkdirs();
 				FileOutputStream fos = new FileOutputStream(newFile);
