@@ -41,6 +41,7 @@ public class GradingHelper {
 				results.add(ar);
 				ar.findFiles(e);
 				ar.copyJavaFilesToUser();
+				ar.stripPackageFromJavaFiles();
 				if (ar.checkRequiredJavaFiles(programs))
 				{
 					if (ar.compileJavaFiles(e))

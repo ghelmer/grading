@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -182,9 +183,52 @@ public class AssignmentResults {
 				userJavaFiles.add(destFile.getName());
 			}
 		}
-		
 	}
 	
+	/**
+	 * Strip the "package ...;" statement, if any, from Java files in the user's
+	 * directory. 
+	 */
+	public void stripPackageFromJavaFiles() throws IOException
+	{
+		for (String jFile : userJavaFiles)
+		{
+			File srcFile = new File(dir.getAbsolutePath() + File.separator + jFile);
+			File destFile = new File(dir.getAbsolutePath() + File.separator + jFile + ".new");
+			
+			Scanner in = new Scanner(srcFile);
+			PrintWriter out = new PrintWriter(destFile);
+			boolean replace = false;
+			while (in.hasNextLine())
+			{
+				String s = in.nextLine();
+				if (!s.startsWith("package "))
+				{
+					out.println(s);
+				}
+				else
+				{
+					replace = true;
+				}
+			}
+			in.close();
+			out.close();
+			if (replace)
+			{
+				long modTime = srcFile.lastModified();
+				if (modTime != 0L)
+				{
+					destFile.setLastModified(modTime);
+				}
+				destFile.renameTo(srcFile);
+			}
+			else
+			{
+				destFile.delete();
+			}
+		}
+	}
+
 	/**
 	 * Organize BlackBoard download.
 	 * For each file in the directory, if it is in the form
