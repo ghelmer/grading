@@ -25,6 +25,7 @@ public class AssignmentResults {
 	private String name;
 	private File dir;
 	private ArrayList<String> userJavaFiles;
+	private HashMap<String, String> requestedUserJavaFilesContents;
 	private ArrayList<String> javaFiles;
 	private ArrayList<String> otherFiles;
 	private ArrayList<String> missingFiles;
@@ -44,6 +45,7 @@ public class AssignmentResults {
 		missingFiles = new ArrayList<String>();
 		programOutputs = new HashMap<String,String>();
 		userJavaFiles = new ArrayList<String>();
+		requestedUserJavaFilesContents = new HashMap<String, String>();
 	}
 	
 	public String getName()
@@ -65,6 +67,14 @@ public class AssignmentResults {
 		} else
 		{
 			r.append("\tNONE\n");
+		}
+		if (requestedUserJavaFilesContents.size() > 0)
+		{
+			r.append("Requested contents of Java files:\n");
+			for (String key : requestedUserJavaFilesContents.keySet())
+			{
+				r.append(requestedUserJavaFilesContents.get(key));
+			}
 		}
 		r.append("Other files found:\n");
 		if (otherFiles != null)
@@ -393,9 +403,9 @@ public class AssignmentResults {
 		boolean result = true;
 		for (ProgramInfo pi : programs)
 		{
-			for (String clss : pi.getClasses())
+			for (AssignmentClasses clss : pi.getClasses())
 			{
-				String className = clss + ".java";
+				String className = clss.getClassName() + ".java";
 				boolean fileFound = false;
 				for (int i = 0; i < userJavaFiles.size() && !fileFound; i++)
 				{
@@ -419,7 +429,67 @@ public class AssignmentResults {
 		}
 		return result;
 	}
-	
+
+	/**
+	 * Obtain the contents of specified java files copied to the student's root
+	 * directory for inclusion in the report.
+	 * 
+	 * @param programs - array of programs classes
+	 */
+	public void showRequestedJavaFiles(ProgramInfo[] programs)
+	{
+		for (ProgramInfo pi : programs)
+		{
+			for (AssignmentClasses clss : pi.getClasses())
+			{
+				if (clss.showClass())
+				{
+					StringBuffer r = new StringBuffer();
+					String className = clss.getClassName() + ".java";
+					String foundFilename = null;
+					for (int i = 0; i < userJavaFiles.size() && foundFilename == null; i++)
+					{
+						String foundFile = userJavaFiles.get(i);
+						int lastSlash = foundFile.lastIndexOf(File.separator);
+						if (lastSlash != -1)
+						{
+							foundFile = foundFile.substring(lastSlash + 1);
+						}
+						if (foundFile.equals(className))
+						{
+							foundFilename = dir.getAbsolutePath() + File.separator + foundFile;
+						}
+					}
+					if (foundFilename == null)
+					{
+						r.append("---- Java file " + className + " NOT FOUND! ----\n");
+					}
+					else
+					{
+						r.append("---- Java file " + foundFilename + " ----\n");
+						try
+						{
+							r.append(getFileAsString(new File(foundFilename)));
+						}
+						catch (IOException e)
+						{
+							r.append("Exception " + e.getMessage() + " while reading file " + foundFilename + "\n");
+							StackTraceElement[] sts = e.getStackTrace();
+							for (StackTraceElement st : sts)
+							{
+								r.append('\t');
+								r.append(st.toString());
+								r.append('\n');
+							}
+						}
+						r.append("\n---- End of Java file " + foundFilename + " ----\n");
+					}
+					requestedUserJavaFilesContents.put(className, r.toString());
+				}
+			}
+		}
+	}
+
 	/**
 	 * Compile the Java source files under the given directory.
 	 * Return a string describing the results.

@@ -11,7 +11,7 @@ import org.w3c.dom.NodeList;
  */
 public class ProgramInfo {
 	private String name;
-	private String[] classes;
+	private AssignmentClasses[] classes;
 	private RunConfiguration[] runConfigurations;
 	
 	/**
@@ -31,10 +31,17 @@ public class ProgramInfo {
 		name = n.getTextContent();
 		
 		NodeList nl = (NodeList)xpath.evaluate("class", program, XPathConstants.NODESET);
-		classes = new String[nl.getLength()];
+		classes = new AssignmentClasses[nl.getLength()];
 		for (int i = 0; i < nl.getLength(); i++)
 		{
-			classes[i] = nl.item(i).getTextContent();
+			String className = nl.item(i).getTextContent();
+			Node showClassAttribute = nl.item(i).getAttributes().getNamedItem("showClass");
+			boolean showClass = false;
+			if (showClassAttribute != null)
+			{
+				showClass = showClassAttribute.getTextContent().equalsIgnoreCase("yes");
+			}
+			classes[i] = new AssignmentClasses(className, showClass);
 		}
 		
 		nl = (NodeList)xpath.evaluate("runConfiguration", program, XPathConstants.NODESET);
@@ -70,7 +77,7 @@ public class ProgramInfo {
 	 * 
 	 * @return class names
 	 */
-	public String[] getClasses()
+	public AssignmentClasses[] getClasses()
 	{
 		return classes;
 	}
