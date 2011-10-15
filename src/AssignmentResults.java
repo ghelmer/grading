@@ -319,12 +319,12 @@ public class AssignmentResults {
 		}
 		for (String s : jfs)
 		{
-			System.out.println(name + ": Found Java file " + s);
+			//System.out.println(name + ": Found Java file " + s);
 		}
 		for (String s : ofs)
 		{
 			// Extract text from other files
-			System.out.println(name + ": Found other file " + s);
+			//System.out.println(name + ": Found other file " + s);
 		}
 		javaFiles = jfs;
 		otherFiles = ofs;
@@ -577,14 +577,22 @@ public class AssignmentResults {
 					{
 						programOutput = new BufferedOutputStream(outputFile);
 						stdout = new StreamConnector(process.getInputStream(), programOutput, "StdOut");
-						stdout.start();
+						stdout.start();	
 					}
 
 					Scanner in = new Scanner(process.getInputStream());
-					while (in.hasNextLine())
+					Scanner errIn = new Scanner(process.getErrorStream());
+					while (in.hasNextLine() || errIn.hasNextLine())
 					{
 						//System.out.println("Output from javac: " + in.nextLine());
-						output.append(in.nextLine() + "\n");
+						if (in.hasNextLine())
+						{
+							output.append("Output from " + name + " java " + program + ": " + in.nextLine() + "\n");
+						}
+						if (errIn.hasNextLine())
+						{
+							output.append("Error output from " + name + " java " + program + ": " + errIn.nextLine() + "\n");
+						}							
 					}
 					process.waitFor();
 					if (process.exitValue() != 0)
