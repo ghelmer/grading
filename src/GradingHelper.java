@@ -101,6 +101,7 @@ public class GradingHelper {
 			for (AssignmentResults ar : results)
 			{
 				System.out.println(ar.toString());
+				System.out.print('\f');
 			}
 		}
 		catch (IOException e)
