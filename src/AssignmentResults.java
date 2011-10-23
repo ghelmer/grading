@@ -6,9 +6,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -21,7 +25,7 @@ import java.util.zip.ZipException;
  * @author ghelmer
  *
  */
-public class AssignmentResults {
+public class AssignmentResults implements Comparable<AssignmentResults>{
 	private String name;
 	private File dir;
 	private ArrayList<String> userJavaFiles;
@@ -31,6 +35,23 @@ public class AssignmentResults {
 	private ArrayList<String> missingFiles;
 	private String compilationOutput;
 	private HashMap<String,String> programOutputs;
+	private Date firstSubmissionDate;
+	
+	/**
+	 * Compare two AssignmentResults instances based first on
+	 * submission date and then on student name.
+	 * @param other the other AssignmentResults entry to compare with
+	 * @return negative, 0, or positive value
+	 */
+	public int compareTo(AssignmentResults other)
+	{
+		int dateCompare = this.firstSubmissionDate.compareTo(other.firstSubmissionDate);
+		if (dateCompare != 0)
+		{
+			return dateCompare;
+		}
+		return this.name.compareTo(other.name);
+	}
 	
 	/**
 	 * Create the object to store all the results of
@@ -194,7 +215,66 @@ public class AssignmentResults {
 			}
 		}
 	}
-	
+
+	/**
+	 * Find earliest date of submission in the files.
+	 */
+	public void findSubmissionDate() throws IOException
+	{
+		/* Date Submitted:Friday, October 21, 2011 4:22:36 PM CDT */
+		Pattern dsPattern = Pattern.compile("^Date Submitted:\\S+, (\\S+ \\d+, \\d+ \\d+:\\d+:\\d+ \\S+ \\S+)$");
+		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, Locale.US);
+		@SuppressWarnings("unchecked")
+		ArrayList<String> otherFilesCopy = (ArrayList<String>)otherFiles.clone();
+		Collections.sort(otherFilesCopy);
+		for (String oFn : otherFilesCopy)
+		{
+			/* Build absolute pathname. */
+			File oFile = new File(dir.getAbsolutePath() + File.separator + oFn);
+			if (oFile.getName().equalsIgnoreCase("submission.txt"))
+			{
+				/* Open and read file until Date Submitted line is found. */
+				Scanner in = new Scanner(oFile);
+				boolean found = false;
+				while (in.hasNextLine() && !found)
+				{
+					String line = in.nextLine();
+					Matcher m = dsPattern.matcher(line);
+					if (m.matches())
+					{
+						found = true;
+						String dateString = m.group(1);
+						try
+						{
+							Date parsedDate = df.parse(dateString);
+							if (firstSubmissionDate == null || parsedDate.compareTo(firstSubmissionDate) < 0)
+							{
+								firstSubmissionDate = parsedDate;
+							}
+						}
+						catch (ParseException pe)
+						{
+							pe.printStackTrace();
+						}
+					}
+				}
+				in.close();
+			}
+		}
+		if (firstSubmissionDate == null)
+		{
+			try
+			{
+				firstSubmissionDate = df.parse("January 1, 2000 00:00:00 AM CST");
+			}
+			catch (ParseException pe)
+			{
+				pe.printStackTrace();
+			}
+		}
+
+	}
+
 	/**
 	 * Strip the "package ...;" statement, if any, from Java files in the user's
 	 * directory. 
@@ -380,7 +460,14 @@ public class AssignmentResults {
 				}
 				else
 				{
-					foundFiles.add(subdirName + e.getName());
+					if (subdirName.length() == 0 && e.getName().endsWith(".java"))
+					{
+						System.err.println("Skipping Java file " + subdirName + e.getName() + " in student " + name + " root directory");
+					}
+					else
+					{
+						foundFiles.add(subdirName + e.getName());
+					}
 				}
 			}
 			else

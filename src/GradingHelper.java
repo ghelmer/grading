@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import javax.xml.parsers.*;
@@ -40,6 +41,7 @@ public class GradingHelper {
 				AssignmentResults ar = new AssignmentResults(e.getName(), e);
 				results.add(ar);
 				ar.findFiles(e);
+				ar.findSubmissionDate();
 				ar.copyJavaFilesToUser();
 				ar.showRequestedJavaFiles(programs);
 				ar.stripPackageFromJavaFiles();
@@ -52,6 +54,7 @@ public class GradingHelper {
 				}
 			}
 		}
+		Collections.sort(results);
 		return results;
 	}
 	
