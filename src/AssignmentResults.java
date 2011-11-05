@@ -1,10 +1,13 @@
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -14,6 +17,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -632,10 +637,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		{
 			String program = pi.getName();
 			for (RunConfiguration rc : pi.getRunConfigurations())
-			{
-				BufferedInputStream programInput = null;
-				BufferedOutputStream programOutput = null;
-				
+			{				
 				StringBuffer output = new StringBuffer();
 				String[] args = rc.getArguments();
 				String[] cmd = new String[args.length + 2];
@@ -645,48 +647,107 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 
 				try
 				{
-					FileInputStream inputFile = rc.openInputFile(dir.getAbsolutePath());
-					StreamConnector stdin = null;
-
-					FileOutputStream outputFile = rc.openOutputFile(dir.getAbsolutePath());
-					StreamConnector stdout = null;
-
-					Process process = r.exec(cmd, null, dir);
-
-					if (inputFile != null)
+					/* Setup input for the program, if any. */
+					BufferedInputStream programInput = null;
+					FileInputStream inputStream = rc.openInputFile(dir.getAbsolutePath());
+					if (inputStream != null)
 					{
-						programInput = new BufferedInputStream(inputFile);
-						stdin = new StreamConnector(programInput, process.getOutputStream(),"StdIn");
-						stdin.start();
+						programInput = new BufferedInputStream(inputStream);
 					}
+					StreamConnector stdinConnector = null;
 
-					if (outputFile != null)
+					/*
+					 * Setup output for the program, either to an output file or
+					 * memory buffer.
+					 */
+					OutputStream outputStream = rc.openOutputFile(dir.getAbsolutePath());
+					ByteArrayOutputStream storedOutputStream = null;
+					if (outputStream == null)
 					{
-						programOutput = new BufferedOutputStream(outputFile);
-						stdout = new StreamConnector(process.getInputStream(), programOutput, "StdOut");
-						stdout.start();	
+						/* Collect output in a ByteArrayOutputStream. */
+						storedOutputStream = new ByteArrayOutputStream();
+						outputStream = storedOutputStream;
 					}
+					BufferedOutputStream programOutput = new BufferedOutputStream(outputStream);
+					StreamConnector stdoutConnector = null;
 
-					Scanner in = new Scanner(process.getInputStream());
-					Scanner errIn = new Scanner(process.getErrorStream());
-					while (in.hasNextLine() || errIn.hasNextLine())
+					/* Setup error output for the program. */
+					ByteArrayOutputStream storedErrorStream = new ByteArrayOutputStream();
+					BufferedOutputStream programError = new BufferedOutputStream(storedErrorStream);
+					StreamConnector stderrConnector = null;
+					
+					try
 					{
-						//System.out.println("Output from javac: " + in.nextLine());
-						if (in.hasNextLine())
+						final Process process = r.exec(cmd, null, dir);
+
+						/*
+						 * Connect and start the threads to copy stdin, stdout,
+						 * and stderr for the child process.
+						 */
+						if (programInput != null)
 						{
-							output.append("Output from " + name + " java " + program + ": " + in.nextLine() + "\n");
+							stdinConnector = new StreamConnector(programInput, process.getOutputStream(),"StdIn");
+							stdinConnector.start();
 						}
-						if (errIn.hasNextLine())
+
+						stdoutConnector = new StreamConnector(process.getInputStream(), programOutput, "StdOut");
+						stdoutConnector.start();
+
+						stderrConnector = new StreamConnector(process.getErrorStream(), programError, "StdErr");
+						stderrConnector.start();
+
+						/*
+						 *  Setup a timer to expire and terminate the child
+						 *  process after a reasonable delay.
+						 */
+					    Timer t = new Timer();
+					    t.schedule(new TimerTask() {
+
+					        @Override
+					        public void run() {
+					            process.destroy();
+					        }
+					    }, 15000);   // it will kill the process after 15 seconds (if it's not finished yet).
+					    process.waitFor();
+					    t.cancel();
+
+						/* Read stdout and stderr into output arraylist. */
+						if (storedOutputStream != null)
 						{
-							output.append("Error output from " + name + " java " + program + ": " + errIn.nextLine() + "\n");
-						}							
+							ByteArrayInputStream conv = new ByteArrayInputStream(storedOutputStream.toByteArray());
+							Scanner in = new Scanner(conv);
+							while (in.hasNextLine())
+							{
+								output.append("Output from " + name + " java " + program + ": " + in.nextLine() + "\n");
+							}
+						}
+						if (storedErrorStream != null)
+						{
+							ByteArrayInputStream conv = new ByteArrayInputStream(storedErrorStream.toByteArray());
+							Scanner errIn = new Scanner(conv);
+							while (errIn.hasNextLine())
+							{
+								output.append("Error output from " + name + " java " + program + ": " + errIn.nextLine() + "\n");
+							}
+						}
+
+						if (process.exitValue() != 0)
+						{
+							output.append("*** Exit code: " + process.exitValue());
+						}
+						programOutputs.put(program + '.' + rc.getName(), output.toString());
 					}
-					process.waitFor();
-					if (process.exitValue() != 0)
+					finally
 					{
-						output.append("*** Exit code: " + process.exitValue());
+						if (programInput != null)
+						{
+							programInput.close();
+						}
+						if (programOutput != null)
+						{
+							programOutput.close();
+						}
 					}
-					programOutputs.put(program + '.' + rc.getName(), output.toString());
 				}
 				catch (IOException e)
 				{
@@ -695,17 +756,6 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 				catch (InterruptedException e)
 				{
 					programOutputs.put(program + '.' + rc.getName(), "InterruptedException: " + e.getMessage());
-				}
-				finally
-				{
-					if (programInput != null)
-					{
-						programInput.close();
-					}
-					if (programOutput != null)
-					{
-						programOutput.close();
-					}
 				}
 			}	
 		}
