@@ -626,14 +626,31 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		for (ProgramInfo pi : programs)
 		{
 			String program = pi.getName();
+			String classpath = pi.getClasspath();
 			for (RunConfiguration rc : pi.getRunConfigurations())
-			{				
+			{
 				StringBuffer output = new StringBuffer();
 				String[] args = rc.getArguments();
-				String[] cmd = new String[args.length + 2];
-				cmd[0] = "java";
-				cmd[1] = program;
-				System.arraycopy(args, 0, cmd, 2, args.length);
+				int maxArgs;
+				if (classpath != null)
+				{
+					maxArgs = args.length + 4;
+				}
+				else
+				{
+					maxArgs = args.length + 2;
+				}
+				int numArgs = 0;
+				String[] cmd = new String[maxArgs];
+				cmd[numArgs++] = "java";
+				if (classpath != null)
+				{
+					cmd[numArgs++] = "-classpath";
+					cmd[numArgs++] = classpath;
+				}
+				cmd[numArgs++] = program;
+				System.arraycopy(args, 0, cmd, numArgs, args.length);
+				numArgs += args.length;
 
 				try
 				{
