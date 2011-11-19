@@ -3,7 +3,6 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -401,15 +400,6 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 			{
 				ofs.add(e);
 			}
-		}
-		for (String s : jfs)
-		{
-			//System.out.println(name + ": Found Java file " + s);
-		}
-		for (String s : ofs)
-		{
-			// Extract text from other files
-			//System.out.println(name + ": Found other file " + s);
 		}
 		javaFiles = jfs;
 		otherFiles = ofs;
