@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.w3c.dom.*;
@@ -11,11 +12,16 @@ public class GradingHelper {
 	String rootDirectory;
 	String hwName;
 	ProgramInfo[] programs;
+	File reportFile;
+	PrintWriter reportFileWriter;
+	ArrayList<AssignmentResults> results; 
 	
 	public GradingHelper(String s)
 	{
 		rootDirectory = s;
 		programs = null;
+		reportFile = null;
+		results = new ArrayList<AssignmentResults>();
 	}
 	
 	/**
@@ -23,7 +29,7 @@ public class GradingHelper {
 	 * find all the Java files in the directory.  Compile the
 	 * files and report whether the compilation succeeded.
 	 */
-	public ArrayList<AssignmentResults> processDirectory() throws IOException, InterruptedException
+	public void processDirectory() throws IOException, InterruptedException
 	{
 		/* Preprocessing: Organize files from BlackBoard assignment download. */
 		File rootDir = new File(rootDirectory);
@@ -33,7 +39,6 @@ public class GradingHelper {
 		}
 		AssignmentResults.organizeBlackBoardFiles(rootDir);
 		
-		ArrayList<AssignmentResults> results = new ArrayList<AssignmentResults>();
 		for (File e : rootDir.listFiles())
 		{
 			if (e.isDirectory())
@@ -55,7 +60,6 @@ public class GradingHelper {
 			}
 		}
 		Collections.sort(results);
-		return results;
 	}
 	
 	/**
@@ -88,7 +92,48 @@ public class GradingHelper {
 	}
 	
 	/**
-	 * @param args
+	 * Create a file in the given root directory to hold the
+	 * report for the student submissions.
+	 * @throws IOException if any I/O problems occur
+	 */
+	public void openReportFile() throws IOException
+	{
+		File rootDir = new File(rootDirectory);
+		if (!rootDir.isDirectory())
+		{
+			throw new IOException(rootDirectory + " is not a directory");
+		}
+		reportFile = File.createTempFile("GradingReport", ".txt", rootDir);
+		reportFileWriter = new PrintWriter(reportFile);
+	}
+
+	/**
+	 * Close the student submission report file and
+	 * display the name of the report file.
+	 * @throws IOException
+	 */
+	public void closeReportFile() throws IOException
+	{
+		System.out.println("Submission results are in " + reportFile.getName());
+		reportFileWriter.close();
+		reportFileWriter = null;
+	}
+	
+	/**
+	 * Generate the report of the student's submissions.
+	 */
+	public void reportResults()
+	{
+		for (AssignmentResults ar : results)
+		{
+			reportFileWriter.println(ar.toString());
+			reportFileWriter.print('\f');
+		}
+		reportFileWriter.flush();
+	}
+	
+	/**
+	 * @param args - Directory to analyze for student submissions
 	 */
 	public static void main(String[] args)
 	{
@@ -100,12 +145,10 @@ public class GradingHelper {
 		try
 		{
 			gh.readConfiguration();
-			ArrayList<AssignmentResults> results = gh.processDirectory();
-			for (AssignmentResults ar : results)
-			{
-				System.out.println(ar.toString());
-				System.out.print('\f');
-			}
+			gh.openReportFile();
+			gh.processDirectory();
+			gh.reportResults();
+			gh.closeReportFile();
 		}
 		catch (IOException e)
 		{
