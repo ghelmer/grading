@@ -710,6 +710,9 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 					    }, 15000);   // it will kill the process after 15 seconds (if it's not finished yet).
 					    process.waitFor();
 					    t.cancel();
+					    
+					    stdoutConnector.join();
+					    stderrConnector.join();
 
 						/* Read stdout and stderr into output arraylist. */
 						if (storedOutputStream != null)
