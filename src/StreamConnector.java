@@ -16,6 +16,8 @@ public class StreamConnector extends Thread {
 
     private InputStream from;
     private OutputStream to;
+    private boolean closeFrom;
+    private boolean closeTo;
 
     /**
      * Construct a new StreamConnector to with the specified
@@ -28,6 +30,25 @@ public class StreamConnector extends Thread {
         super("StreamConnector " + count() + ": " + name);
         this.from = from;
         this.to = to;
+        closeFrom = false;
+        closeTo = false;
+    }
+    /**
+     * Construct a new StreamConnector to with the specified
+     * InputStream and OutputStream.
+     * @param from - InputStream
+     * @param to - OutputStream
+     * @param closeFrom - close the input stream when end-of-file encountered
+     * @param closeTo - close the output stream when end-of-file encountered on input
+     * @param name - identifying information about the stream
+     */
+    public StreamConnector(InputStream from, OutputStream to,
+    		boolean closeFrom, boolean closeTo, String name) {
+        super("StreamConnector " + count() + ": " + name);
+        this.from = from;
+        this.to = to;
+        this.closeFrom = closeFrom;
+        this.closeTo = closeTo;
     }
     /**
      * Run this thread under the VoidBlock to catch any execptions
@@ -36,7 +57,7 @@ public class StreamConnector extends Thread {
     public void run() {
         new Exceptions.VoidBlock() {
             public void inner() throws Exception {
-                Streams.copy(from, to, false, true);
+                Streams.copy(from, to, false, true, closeFrom, closeTo);
             }
         }.exec();
     }
@@ -60,8 +81,13 @@ public class StreamConnector extends Thread {
     	public static void copy(InputStream from, OutputStream to) throws IOException {
     		copy(from, to, true, false);
     	}
-    	static void copy(InputStream from, OutputStream to, boolean buffer,
+    	public static void copy(InputStream from, OutputStream to, boolean buffer,
     			boolean terminateOnFailure) throws IOException {
+    		copy(from, to, buffer, terminateOnFailure, false, false);
+    	}
+    	static void copy(InputStream from, OutputStream to, boolean buffer,
+    			boolean terminateOnFailure, boolean closeFrom,
+    			boolean closeTo) throws IOException {
     		if (buffer) {
     			from = new BufferedInputStream(from);
     			to = new BufferedOutputStream(to);
@@ -85,6 +111,12 @@ public class StreamConnector extends Thread {
     			}
     		}
     		to.flush();
+    		if (closeFrom) {
+    			from.close();
+    		}
+    		if (closeTo) {
+    			to.close();
+    		}
     	}
     }
  }

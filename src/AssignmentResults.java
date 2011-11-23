@@ -693,7 +693,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 						 */
 						if (programInput != null)
 						{
-							stdinConnector = new StreamConnector(programInput, process.getOutputStream(),"StdIn");
+							stdinConnector = new StreamConnector(programInput, process.getOutputStream(), false, true, "StdIn");
 							stdinConnector.start();
 						}
 
