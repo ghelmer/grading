@@ -584,6 +584,8 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 	{
 		StringBuffer output = new StringBuffer();
 		
+		if (userJavaFiles.size() == 0)
+			return true;
 		Runtime r = Runtime.getRuntime();
 		String[] cmd = new String[userJavaFiles.size() + 1];
 		cmd[0] = "javac";
