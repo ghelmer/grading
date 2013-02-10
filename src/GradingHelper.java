@@ -3,6 +3,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import javax.xml.parsers.*;
@@ -14,7 +19,8 @@ public class GradingHelper {
 	ProgramInfo[] programs;
 	File reportFile;
 	PrintWriter reportFileWriter;
-	ArrayList<AssignmentResults> results; 
+	ArrayList<AssignmentResults> results;
+	HashMap<String,String> usersToFullName;
 	
 	public GradingHelper(String s)
 	{
@@ -22,6 +28,44 @@ public class GradingHelper {
 		programs = null;
 		reportFile = null;
 		results = new ArrayList<AssignmentResults>();
+		usersToFullName = new HashMap<String,String>();
+	}
+	
+	/**
+	 * Load the list of usernames and full names from the Students.txt
+	 * file in the directory above the given subdirectory.
+	 */
+	public void loadStudentsNames() throws IOException
+	{
+		File studentsFile = new File(rootDirectory + "/../Students.txt");
+		if (!studentsFile.exists())
+		{
+			System.out.println("Warning: Students file " + studentsFile.toString() + " does not exist");
+			return;
+		}
+		/* username: Last, First */
+		Pattern linePattern = Pattern.compile("^(\\S+)\t(.*)$");
+		int lineNumber = 0;
+		Scanner in = new Scanner(studentsFile);
+		while (in.hasNextLine())
+		{
+			String line = in.nextLine();
+			lineNumber++;
+			if (line.length() == 0)
+				continue;
+			Matcher m = linePattern.matcher(line);
+			if (m.matches())
+			{
+				String user = m.group(1);
+				String name = m.group(2);
+				usersToFullName.put(user, name.trim());
+			}
+			else
+			{
+				System.out.println(studentsFile.toString() + ": Line " + lineNumber + ": Did not match 'username<TAB>Last, First' pattern");
+			}
+		}
+		in.close();
 	}
 	
 	/**
@@ -43,7 +87,7 @@ public class GradingHelper {
 		{
 			if (e.isDirectory())
 			{
-				AssignmentResults ar = new AssignmentResults(e.getName(), e);
+				AssignmentResults ar = new AssignmentResults(e.getName(), usersToFullName.get(e.getName()), e);
 				results.add(ar);
 				ar.findFiles(e);
 				ar.findSubmissionDate();
@@ -144,6 +188,7 @@ public class GradingHelper {
 		GradingHelper gh = new GradingHelper(args[0]);
 		try
 		{
+			gh.loadStudentsNames();
 			gh.readConfiguration();
 			gh.openReportFile();
 			gh.processDirectory();

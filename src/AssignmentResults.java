@@ -31,6 +31,7 @@ import java.util.zip.ZipException;
  */
 public class AssignmentResults implements Comparable<AssignmentResults>{
 	private String name;
+	private String fullName;
 	private File dir;
 	private ArrayList<String> userJavaFiles;
 	private HashMap<String, String> requestedUserJavaFilesContents;
@@ -49,12 +50,23 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 	 */
 	public int compareTo(AssignmentResults other)
 	{
+		/*
 		int dateCompare = this.firstSubmissionDate.compareTo(other.firstSubmissionDate);
 		if (dateCompare != 0)
 		{
 			return dateCompare;
 		}
 		return this.name.compareTo(other.name);
+		}
+		*/
+		{
+			int fullNameCompare = this.fullName.compareTo(other.fullName);
+			if (fullNameCompare != 0)
+			{
+				return fullNameCompare;
+			}
+			return this.name.compareTo(other.name);
+		}
 	}
 	
 	/**
@@ -63,9 +75,17 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 	 * @param _name - Name of student
 	 * @param _dir - directory containing student submission files
 	 */
-	public AssignmentResults(String _name, File _dir)
+	public AssignmentResults(String _name, String _fullName, File _dir)
 	{
 		name = _name;
+		if (_fullName == null)
+		{
+			fullName = _name;
+		}
+		else
+		{
+			fullName = _fullName;
+		}
 		dir = _dir;
 		missingFiles = new ArrayList<String>();
 		programOutputs = new HashMap<String,String>();
@@ -338,7 +358,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		
 		/* First step: organize files into per-user / per-submission directories. */
 		File[] allFiles = dir.listFiles();
-		Pattern hwFilePattern = Pattern.compile("Homework[0-9]*_(.*)_attempt_([0-9-]*)[_.](.*)$");
+		Pattern hwFilePattern = Pattern.compile("H[ a-zA-Z0-9]*_(.*)_attempt_([0-9-]*)[_.](.*)$");
 		for (File d : allFiles)
 		{
 			Matcher m = hwFilePattern.matcher(d.getName());
