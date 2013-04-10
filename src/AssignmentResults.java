@@ -407,6 +407,11 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		findFiles(dir, "", allFiles);
 		for (String e : allFiles)
 		{
+			if (e.startsWith("."))
+			{
+				/* Ignore names starting with '.'. */
+				continue;
+			}
 			if (e.endsWith(".class"))
 			{
 				/* Ignore. */
