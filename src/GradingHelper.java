@@ -158,9 +158,12 @@ public class GradingHelper {
 	 */
 	public void closeReportFile() throws IOException
 	{
-		System.out.println("Submission results are in " + reportFile.getName());
 		reportFileWriter.close();
 		reportFileWriter = null;
+		File renameReportFile = new File(rootDirectory + File.separator + "GradingReport.txt");
+		reportFile.renameTo(renameReportFile);
+		reportFile = renameReportFile;
+		System.out.println("Submission results are in " + reportFile.getAbsolutePath());
 	}
 	
 	/**
