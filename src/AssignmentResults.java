@@ -30,6 +30,8 @@ import java.util.zip.ZipException;
  *
  */
 public class AssignmentResults implements Comparable<AssignmentResults>{
+	public final static int MAX_ERROR_OUTPUT_SIZE = 1024 * 1024;
+	public final static int MAX_STD_OUTPUT_SIZE = 1024 * 1024;
 	private String name;
 	private String fullName;
 	private File dir;
@@ -678,7 +680,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 				cmd[numArgs++] = program;
 				System.arraycopy(args, 0, cmd, numArgs, args.length);
 				numArgs += args.length;
-
+				System.out.println("Running " + name + " program " + program);
 				try
 				{
 					/* Setup input for the program, if any. */
@@ -699,14 +701,14 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 					if (outputStream == null)
 					{
 						/* Collect output in a ByteArrayOutputStream. */
-						storedOutputStream = new ByteArrayOutputStream();
+						storedOutputStream = new ByteArrayOutputStream(MAX_STD_OUTPUT_SIZE);
 						outputStream = storedOutputStream;
 					}
 					BufferedOutputStream programOutput = new BufferedOutputStream(outputStream);
 					StreamConnector stdoutConnector = null;
 
 					/* Setup error output for the program. */
-					ByteArrayOutputStream storedErrorStream = new ByteArrayOutputStream();
+					ByteArrayOutputStream storedErrorStream = new ByteArrayOutputStream(MAX_ERROR_OUTPUT_SIZE);
 					BufferedOutputStream programError = new BufferedOutputStream(storedErrorStream);
 					StreamConnector stderrConnector = null;
 					
