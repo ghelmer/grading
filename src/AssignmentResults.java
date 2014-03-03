@@ -192,6 +192,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 			sb.append(in.nextLine());
 			sb.append('\n');
 		}
+		in.close();
 		return sb.toString();
 	}
 	
@@ -625,6 +626,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 			//System.out.println("Output from javac: " + in.nextLine());
 			output.append(in.nextLine() + "\n");
 		}
+		in.close();
 		result.waitFor();
 		if (output.length() != 0)
 		{
@@ -759,6 +761,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 							{
 								output.append("Output from " + name + " java " + program + ": " + in.nextLine() + "\n");
 							}
+							in.close();
 						}
 						if (storedErrorStream != null)
 						{
@@ -768,6 +771,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 							{
 								output.append("Error output from " + name + " java " + program + ": " + errIn.nextLine() + "\n");
 							}
+							errIn.close();
 						}
 
 						if (process.exitValue() != 0)
