@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -658,18 +659,25 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		{
 			String program = pi.getName();
 			String classpath = pi.getClasspath();
+			URI securityPolicyURI = null;
+			String securityPolicyFileStr = pi.getSecurityPolicyFile();
+			if (securityPolicyFileStr != null)
+			{
+				File securityPolicyFile = new File(securityPolicyFileStr);
+				securityPolicyURI = securityPolicyFile.toURI();
+			}
 			for (RunConfiguration rc : pi.getRunConfigurations())
 			{
 				StringBuffer output = new StringBuffer();
 				String[] args = rc.getArguments();
-				int maxArgs;
+				int maxArgs = args.length + 2;
 				if (classpath != null)
 				{
-					maxArgs = args.length + 4;
+					maxArgs += 2;
 				}
-				else
+				if (securityPolicyURI != null)
 				{
-					maxArgs = args.length + 2;
+					maxArgs += 3;
 				}
 				int numArgs = 0;
 				String[] cmd = new String[maxArgs];
@@ -678,6 +686,15 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 				{
 					cmd[numArgs++] = "-classpath";
 					cmd[numArgs++] = classpath;
+				}
+				if (securityPolicyURI != null)
+				{
+					// Set parameter grading.base to the directory containing the directory
+					// that contains the homework submissions.
+					cmd[numArgs++] = "-Dgrading.base=" + dir.getParentFile().getParent();
+					// System.out.println("grading.base=" + cmd[numArgs - 1]);
+					cmd[numArgs++] = "-Djava.security.manager";
+					cmd[numArgs++] = "-Djava.security.policy=" + securityPolicyURI.toString();
 				}
 				cmd[numArgs++] = program;
 				System.arraycopy(args, 0, cmd, numArgs, args.length);
