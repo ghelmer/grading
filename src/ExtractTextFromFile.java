@@ -24,6 +24,7 @@ public class ExtractTextFromFile {
 		{
 			output.append(in.nextLine() + "\n");
 		}
+		in.close();
 		try {
 			result.waitFor();
 			if (output.length() != 0)

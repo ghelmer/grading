@@ -12,6 +12,7 @@ import org.w3c.dom.NodeList;
 public class ProgramInfo {
 	private String name;
 	private String classpath;
+	private String securityPolicyFile;
 	private AssignmentClasses[] classes;
 	private RunConfiguration[] runConfigurations;
 	
@@ -35,6 +36,10 @@ public class ProgramInfo {
 		if (n != null)
 			classpath = n.getTextContent();
 
+		n = (Node)xpath.evaluate("securityPolicyFile", program, XPathConstants.NODE);
+		if (n != null)
+			securityPolicyFile = n.getTextContent();
+
 		NodeList nl = (NodeList)xpath.evaluate("class", program, XPathConstants.NODESET);
 		classes = new AssignmentClasses[nl.getLength()];
 		for (int i = 0; i < nl.getLength(); i++)
@@ -48,7 +53,7 @@ public class ProgramInfo {
 			}
 			classes[i] = new AssignmentClasses(className, showClass);
 		}
-		
+
 		nl = (NodeList)xpath.evaluate("runConfiguration", program, XPathConstants.NODESET);
 		runConfigurations = new RunConfiguration[nl.getLength()];
 		for (int i = 0; i < nl.getLength(); i++)
@@ -76,6 +81,15 @@ public class ProgramInfo {
 		return classpath;
 	}
 	
+	/**
+	 * Get the name of the security policy file, or null if none.
+	 * @return securityPolicyFile
+	 */
+	public String getSecurityPolicyFile()
+	{
+		return securityPolicyFile;
+	}
+
 	/**
 	 * Get the list of run configurations for this program.
 	 * 
