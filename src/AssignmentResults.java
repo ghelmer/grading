@@ -288,7 +288,6 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 						try
 						{
 							Date parsedDate = df.parse(dateString);
-							System.out.printf("File %s: Found line %s and parsed date %s\n", oFile.getPath(), line, df.format(parsedDate));
 							if (firstSubmissionDate == null || parsedDate.compareTo(firstSubmissionDate) < 0)
 							{
 								firstSubmissionDate = parsedDate;

@@ -142,7 +142,6 @@ public class GradingHelper {
 		if (n != null)
 		{
 			dueDate = df.parse(n.getTextContent());
-			System.out.printf("Got due date: %s from string %s\n", df.format(dueDate), n.getTextContent());
 		}
 
 		NodeList nl = (NodeList)xpath.evaluate("/homework/program", doc, XPathConstants.NODESET);
