@@ -1,8 +1,12 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -10,6 +14,7 @@ import java.util.regex.Pattern;
 
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
+
 import javax.xml.parsers.*;
 import javax.xml.xpath.*;
 
@@ -21,14 +26,18 @@ public class GradingHelper {
 	PrintWriter reportFileWriter;
 	ArrayList<AssignmentResults> results;
 	HashMap<String,String> usersToFullName;
+	DateFormat df;
+	Date dueDate;
 	
-	public GradingHelper(String s)
+	public GradingHelper(String s) throws ParseException
 	{
 		rootDirectory = s;
 		programs = null;
 		reportFile = null;
 		results = new ArrayList<AssignmentResults>();
 		usersToFullName = new HashMap<String,String>();
+		df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+		dueDate = df.parse("2100-01-01 00:00");
 	}
 	
 	/**
@@ -90,7 +99,7 @@ public class GradingHelper {
 				AssignmentResults ar = new AssignmentResults(e.getName(), usersToFullName.get(e.getName()), e);
 				results.add(ar);
 				ar.findFiles(e);
-				ar.findSubmissionDate();
+				ar.findSubmissionDate(dueDate);
 				ar.copyJavaFilesToUser();
 				ar.showRequestedJavaFiles(programs);
 				ar.stripPackageFromJavaFiles();
@@ -113,8 +122,10 @@ public class GradingHelper {
 	 *   grading.javaFiles: comma-separated list of input files for each program
 	 * @param dir - Directory expected to contain the config file
 	 * @throws IOException
+	 * @throws ParseException 
+	 * @throws DOMException 
 	 */
-	public void readConfiguration() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException
+	public void readConfiguration() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException, DOMException, ParseException
 	{
 		DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
 	    domFactory.setNamespaceAware(true); // never forget this!
@@ -126,6 +137,13 @@ public class GradingHelper {
 		
 		Node n = (Node)xpath.evaluate("/homework/name", doc, XPathConstants.NODE);
 		hwName = n.getTextContent();
+		
+		n = (Node)xpath.evaluate("/homework/dueDate", doc, XPathConstants.NODE);
+		if (n != null)
+		{
+			dueDate = df.parse(n.getTextContent());
+			System.out.printf("Got due date: %s from string %s\n", df.format(dueDate), n.getTextContent());
+		}
 
 		NodeList nl = (NodeList)xpath.evaluate("/homework/program", doc, XPathConstants.NODESET);
 		programs = new ProgramInfo[nl.getLength()];
@@ -188,9 +206,9 @@ public class GradingHelper {
 			System.err.println("Usage: GradingHelper directory-name");
 			System.exit(1);
 		}
-		GradingHelper gh = new GradingHelper(args[0]);
 		try
 		{
+			GradingHelper gh = new GradingHelper(args[0]);
 			gh.loadStudentsNames();
 			gh.readConfiguration();
 			gh.openReportFile();
@@ -199,6 +217,10 @@ public class GradingHelper {
 			gh.closeReportFile();
 		}
 		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch (ParseException e)
 		{
 			e.printStackTrace();
 		}

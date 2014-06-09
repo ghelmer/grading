@@ -44,6 +44,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 	private String compilationOutput;
 	private HashMap<String,String> programOutputs;
 	private Date firstSubmissionDate;
+	private double daysLate;
 	
 	/**
 	 * Compare two AssignmentResults instances based first on
@@ -94,6 +95,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		programOutputs = new HashMap<String,String>();
 		userJavaFiles = new ArrayList<String>();
 		requestedUserJavaFilesContents = new HashMap<String, String>();
+		daysLate = 0;
 	}
 	
 	public String getName()
@@ -103,8 +105,16 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 	
 	public String toString()
 	{
+		String separator = "--------------------------------------------------------------------------------\n";
 		StringBuffer r = new StringBuffer();
 		r.append("Name: " + name + "\n");
+		r.append("Submitted: " + firstSubmissionDate);
+		if (daysLate > 0)
+		{
+			r.append(String.format(" (%.2f days late)", daysLate));
+		}
+		r.append("\n");
+		r.append(separator);
 		r.append("Java files found:\n");
 		if (userJavaFiles != null)
 		{
@@ -246,11 +256,14 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 
 	/**
 	 * Find earliest date of submission in the files.
+	 * If submission date is after the due date, compute the
+	 * number of days late.
 	 */
-	public void findSubmissionDate() throws IOException
+	public void findSubmissionDate(Date dueDate) throws IOException
 	{
 		/* Date Submitted:Friday, October 21, 2011 4:22:36 PM CDT */
-		Pattern dsPattern = Pattern.compile("^Date Submitted:\\S+, (\\S+ \\d+, \\d+ \\d+:\\d+:\\d+ \\S+ \\S+)$");
+		/* Date Submitted: Friday, February 28, 2014 12:46:42 AM CST */
+		Pattern dsPattern = Pattern.compile("^Date Submitted:\\s*\\S+, (\\S+ \\d+, \\d+ \\d+:\\d+:\\d+ \\S+ \\S+)$");
 		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, Locale.US);
 		@SuppressWarnings("unchecked")
 		ArrayList<String> otherFilesCopy = (ArrayList<String>)otherFiles.clone();
@@ -275,6 +288,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 						try
 						{
 							Date parsedDate = df.parse(dateString);
+							System.out.printf("File %s: Found line %s and parsed date %s\n", oFile.getPath(), line, df.format(parsedDate));
 							if (firstSubmissionDate == null || parsedDate.compareTo(firstSubmissionDate) < 0)
 							{
 								firstSubmissionDate = parsedDate;
@@ -300,7 +314,14 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 				pe.printStackTrace();
 			}
 		}
-
+		else
+		{
+			if (firstSubmissionDate.after(dueDate))
+			{
+				daysLate = (firstSubmissionDate.getTime() - dueDate.getTime()) /
+						(double)(24 * 60 * 60 * 1000);
+			}
+		}
 	}
 
 	/**
