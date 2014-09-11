@@ -75,6 +75,7 @@ public class GradingHelper {
 			}
 		}
 		in.close();
+		System.out.println("Notice: Read students file " + studentsFile.toString());
 	}
 	
 	/**
