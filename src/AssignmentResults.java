@@ -107,7 +107,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 	{
 		String separator = "--------------------------------------------------------------------------------\n";
 		StringBuffer r = new StringBuffer();
-		r.append("Name: " + name + "\n");
+		r.append("Name: " + name + " (" + fullName + ")\n");
 		r.append("Submitted: " + firstSubmissionDate);
 		if (daysLate > 0)
 		{
@@ -434,6 +434,21 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 			if (e.startsWith("."))
 			{
 				/* Ignore names starting with '.'. */
+				continue;
+			}
+			if (e.endsWith(".classpath"))
+			{
+				/* Ignore. */
+				continue;
+			}
+			if (e.endsWith(".DS_Store"))
+			{
+				/* Ignore. */
+				continue;
+			}
+			if (e.endsWith(".prefs"))
+			{
+				/* Ignore. */
 				continue;
 			}
 			if (e.endsWith(".class"))
