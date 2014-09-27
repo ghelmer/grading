@@ -85,21 +85,40 @@ public class RunConfiguration {
 		inputFile = newInputFile;
 	}
 	
+	/**
+	 * Set the name of the output file.
+	 * @param newOutputFile filename to use for output
+	 */
 	public void setOutputFile(String newOutputFile)
 	{
 		outputFile = newOutputFile;
 	}
-	
+
+	/**
+	 * Obtain the arguments array to use for the program.
+	 * @return arguments array
+	 */
 	public String[] getArguments()
 	{
 		return arguments;
 	}
 	
+	/**
+	 * Get the name of the program.
+	 * @return program name
+	 */
 	public String getName()
 	{
 		return name;
 	}
 	
+	/**
+	 * Open the input file to be used for standard input when the program is run.
+	 * @param subdir If inputFileFlags is FILE_SUBMITTED, the student's directory
+	 *  containing the input file
+	 * @return input stream from the input file
+	 * @throws FileNotFoundException
+	 */
 	public FileInputStream openInputFile(String subdir) throws FileNotFoundException
 	{
 		if (inputFile == null)
@@ -110,6 +129,12 @@ public class RunConfiguration {
 		return new FileInputStream(path);
 	}
 		
+	/**
+	 * Open the output file to contain standard output from the program.
+	 * @param subdir The student's directory to contain the output file.
+	 * @return output stream to the output file
+	 * @throws FileNotFoundException
+	 */
 	public FileOutputStream openOutputFile(String subdir) throws FileNotFoundException
 	{
 		if (outputFile == null)
