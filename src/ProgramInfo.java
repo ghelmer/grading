@@ -1,4 +1,7 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import javax.xml.xpath.*;
+
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -23,8 +26,9 @@ public class ProgramInfo {
 	 * 
 	 * @param program - XML node heading the program specification
 	 * @throws XPathExpressionException
+	 * @throws FileNotFoundException 
 	 */
-	public ProgramInfo(Node program) throws XPathExpressionException
+	public ProgramInfo(Node program) throws XPathExpressionException, FileNotFoundException
 	{
 		XPathFactory factory = XPathFactory.newInstance();
 		XPath xpath = factory.newXPath();
@@ -38,7 +42,14 @@ public class ProgramInfo {
 
 		n = (Node)xpath.evaluate("securityPolicyFile", program, XPathConstants.NODE);
 		if (n != null)
+		{
 			securityPolicyFile = n.getTextContent();
+			File spf = new File(securityPolicyFile);
+			if (!spf.exists())
+			{
+				throw new FileNotFoundException("Security policy file " + securityPolicyFile + " does not exist");
+			}
+		}
 
 		NodeList nl = (NodeList)xpath.evaluate("class", program, XPathConstants.NODESET);
 		classes = new AssignmentClasses[nl.getLength()];
