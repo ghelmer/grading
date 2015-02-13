@@ -431,7 +431,8 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		findFiles(dir, "", allFiles);
 		for (String e : allFiles)
 		{
-			if (e.startsWith("."))
+			File f = new File (e);
+			if (f.getName().startsWith("."))
 			{
 				/* Ignore names starting with '.'. */
 				continue;
@@ -452,6 +453,11 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 				continue;
 			}
 			if (e.endsWith(".class"))
+			{
+				/* Ignore. */
+				continue;
+			}
+			if (e.endsWith(".jar"))
 			{
 				/* Ignore. */
 				continue;
