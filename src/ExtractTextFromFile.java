@@ -8,10 +8,11 @@ public class ExtractTextFromFile {
 			throw new IllegalArgumentException(inputFile.toString() + " is not a valid file");
 		}
 		
-		// Use LibreOffice + unoconv to convert the document
-		// /Applications/LibreOffice.app/Contents/MacOS/python ~/Downloads/unoconv-0.6/unoconv --format=text --output=testing.txt ~/Documents/testing.odt
+		// Use OpenOffice.app + unoconv to convert the document.
+		// unoconv no longer works with LibreOffice.
+		// /usr/bin/python ~/Downloads/unoconv-0.6/unoconv --format=text --output=testing.txt ~/Documents/testing.odt
 		String args[] = new String[5];
-		args[0] = "/Applications/LibreOffice.app/Contents/MacOS/python";
+		args[0] = "/usr/bin/python";
 		args[1] = "/Users/ghelmer/Downloads/unoconv-0.6/unoconv";
 		args[2] = "--format=text";
 		args[3] = "--output=" + outputFile.getAbsolutePath();
