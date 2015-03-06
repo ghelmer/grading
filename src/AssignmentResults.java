@@ -382,7 +382,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		
 		/* First step: organize files into per-user / per-submission directories. */
 		File[] allFiles = dir.listFiles();
-		Pattern hwFilePattern = Pattern.compile("H[ a-zA-Z0-9]*_(.*)_attempt_([0-9-]*)[_.](.*)$");
+		Pattern hwFilePattern = Pattern.compile("[A-Z][ a-zA-Z0-9]*_(.*)_attempt_([0-9-]*)[_.](.*)$");
 		for (File d : allFiles)
 		{
 			Matcher m = hwFilePattern.matcher(d.getName());
