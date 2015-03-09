@@ -24,6 +24,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipException;
 
+import org.apache.tika.exception.TikaException;
+import org.xml.sax.SAXException;
+
 /**
  * Check and record the results of processing a student's assignment.
  * 
@@ -156,6 +159,28 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 						sb.append('\n');
 					}
 					r.append("Exception: " + sb.toString());
+				} catch (SAXException e) {
+					StackTraceElement[] sts = e.getStackTrace();
+					StringBuffer sb = new StringBuffer();
+					sb.append("Exception:\n");
+					for (StackTraceElement st : sts)
+					{
+						sb.append('\t');
+						sb.append(st.toString());
+						sb.append('\n');
+					}
+					r.append("SAXException: " + sb.toString());
+				} catch (TikaException e) {
+					StackTraceElement[] sts = e.getStackTrace();
+					StringBuffer sb = new StringBuffer();
+					sb.append("Exception:\n");
+					for (StackTraceElement st : sts)
+					{
+						sb.append('\t');
+						sb.append(st.toString());
+						sb.append('\n');
+					}
+					r.append("TikaException: " + sb.toString());
 				}
 				r.append("\n--- End Contents of + " + of + " ---\n");
 			}
@@ -209,8 +234,10 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 	
 	/**
 	 * Return the text from a document in the submission.
+	 * @throws TikaException 
+	 * @throws SAXException 
 	 */
-	public String getDocumentText(String docFilename) throws IOException
+	public String getDocumentText(String docFilename) throws IOException, SAXException, TikaException
 	{
 		File inputFile = new File(dir.getAbsolutePath() + File.separator + docFilename);
 		if (docFilename.endsWith(".txt"))

@@ -166,7 +166,7 @@ public class GradingHelper {
 			throw new IOException(rootDirectory + " is not a directory");
 		}
 		reportFile = File.createTempFile("GradingReport", ".txt", rootDir);
-		reportFileWriter = new PrintWriter(reportFile);
+		reportFileWriter = new PrintWriter(reportFile, "UTF-8");
 	}
 
 	/**
