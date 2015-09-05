@@ -182,7 +182,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 					}
 					r.append("TikaException: " + sb.toString());
 				}
-				r.append("\n--- End Contents of + " + of + " ---\n");
+				r.append("\n--- End Contents of " + of + " ---\n");
 			}
 		}
 		if (compilationOutput != null)
@@ -206,11 +206,12 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 			String programOutput = programOutputs.get(pn);
 			if (programOutput != null)
 			{
-				r.append("Output from program " + pn + ":\n-----\n" + programOutput + "\n-----\n");
+				r.append(String.format("Output from program %s:\n", pn));
+				r.append(programOutput);
 			}
 			else
 			{
-				r.append("*** No output from program " + pn + " ***\n");
+				r.append(String.format("No output from program %s\n", pn));
 			}
 		}
 		return r.toString();
@@ -840,28 +841,44 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 						/* Read stdout and stderr into output arraylist. */
 						if (storedOutputStream != null)
 						{
-							ByteArrayInputStream conv = new ByteArrayInputStream(storedOutputStream.toByteArray());
-							Scanner in = new Scanner(conv);
-							while (in.hasNextLine())
+							if (storedOutputStream.size() == 0)
 							{
-								output.append("Output from " + name + " java " + program + ": " + in.nextLine() + "\n");
+								output.append(String.format("----- No output from %s java %s run %s ------\n", name, program, rc.getName()));
 							}
-							in.close();
+							else
+							{
+								output.append(String.format("----- Start of output from %s java %s run %s ------\n", name, program, rc.getName()));
+								ByteArrayInputStream conv = new ByteArrayInputStream(storedOutputStream.toByteArray());
+								Scanner in = new Scanner(conv);
+								while (in.hasNextLine())
+								{
+									output.append(in.nextLine());
+									output.append('\n');
+								}
+								in.close();
+								output.append(String.format("----- End of output from %s java %s run %s ------\n", name, program, rc.getName()));
+							}
 						}
 						if (storedErrorStream != null)
 						{
-							ByteArrayInputStream conv = new ByteArrayInputStream(storedErrorStream.toByteArray());
-							Scanner errIn = new Scanner(conv);
-							while (errIn.hasNextLine())
+							if (storedErrorStream.size() != 0)
 							{
-								output.append("Error output from " + name + " java " + program + ": " + errIn.nextLine() + "\n");
+								output.append(String.format("----- Start of error output from %s java %s run %s ------\n", name, program, rc.getName()));
+								ByteArrayInputStream conv = new ByteArrayInputStream(storedErrorStream.toByteArray());
+								Scanner errIn = new Scanner(conv);
+								while (errIn.hasNextLine())
+								{
+									output.append(errIn.nextLine());
+									output.append('\n');
+								}
+								errIn.close();
+								output.append(String.format("----- End of error output from %s java %s run %s ------\n", name, program, rc.getName()));
 							}
-							errIn.close();
 						}
 
 						if (process.exitValue() != 0)
 						{
-							output.append("*** Exit code: " + process.exitValue());
+							output.append(String.format("*** %s java %s run %s exit code %d\n", name, program, rc.getName(), process.exitValue()));
 						}
 						programOutputs.put(program + '.' + rc.getName(), output.toString());
 					}
