@@ -646,7 +646,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 					}
 					else
 					{
-						r.append("---- Java file " + foundFilename + " ----\n");
+						r.append("---- Java file " + className + " ----\n");
 						try
 						{
 							r.append(getFileAsString(new File(foundFilename)));
