@@ -34,8 +34,8 @@ import org.xml.sax.SAXException;
  *
  */
 public class AssignmentResults implements Comparable<AssignmentResults>{
-	public final static int MAX_ERROR_OUTPUT_SIZE = 1024 * 1024;
-	public final static int MAX_STD_OUTPUT_SIZE = 1024 * 1024;
+	public final static int MAX_ERROR_OUTPUT_SIZE = 4096;
+	public final static int MAX_STD_OUTPUT_SIZE = 4096;
 	private String name;
 	private String fullName;
 	private File dir;
@@ -763,7 +763,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 					cmd[numArgs++] = "-Dgrading.base=" + dir.getParentFile().getParent();
 					// System.out.println("grading.base=" + cmd[numArgs - 1]);
 					cmd[numArgs++] = "-Djava.security.manager";
-					cmd[numArgs++] = "-Djava.security.policy=" + securityPolicyURI.toString();
+					cmd[numArgs++] = "-Djava.security.policy==" + securityPolicyURI.toString();
 				}
 				cmd[numArgs++] = program;
 				System.arraycopy(args, 0, cmd, numArgs, args.length);
