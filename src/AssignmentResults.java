@@ -739,6 +739,7 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 			{
 				StringBuffer output = new StringBuffer();
 				String[] args = rc.getArguments();
+				String[] properties = rc.getProperties();
 				int maxArgs = args.length + 2;
 				if (classpath != null)
 				{
@@ -747,6 +748,10 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 				if (securityPolicyURI != null)
 				{
 					maxArgs += 3;
+				}
+				if (properties != null)
+				{
+					maxArgs += properties.length;
 				}
 				int numArgs = 0;
 				String[] cmd = new String[maxArgs];
@@ -764,6 +769,15 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 					// System.out.println("grading.base=" + cmd[numArgs - 1]);
 					cmd[numArgs++] = "-Djava.security.manager";
 					cmd[numArgs++] = "-Djava.security.policy==" + securityPolicyURI.toString();
+				}
+				if (properties != null)
+				{
+					// Add any properties specified in the RunConfiguration
+					// to the command line.
+					for (String p : properties)
+					{
+						cmd[numArgs++] = String.format("-D%s", p);
+					}
 				}
 				cmd[numArgs++] = program;
 				System.arraycopy(args, 0, cmd, numArgs, args.length);

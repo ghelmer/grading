@@ -16,6 +16,7 @@ public class RunConfiguration {
 	public static final int FILE_SUBMITTED = 1;
 	private String name;
 	private String[] arguments;
+	private String[] properties; // Optional properties to set when running the program. Can be null.
 	private int inputFileFlags;
 	private String inputFile;
 	private String outputFile;
@@ -23,6 +24,7 @@ public class RunConfiguration {
 	public RunConfiguration()
 	{
 		arguments = new String[0];
+		properties = null;
 	}
 	
 	/**
@@ -45,7 +47,17 @@ public class RunConfiguration {
 		{
 			arguments[i] = nl.item(i).getTextContent();
 		}
-		
+
+		nl = (NodeList)xpath.evaluate("property", e, XPathConstants.NODESET);
+		if (nl.getLength() > 0)
+		{
+			properties = new String[nl.getLength()];
+			for (int i = 0; i < nl.getLength(); i++)
+			{
+				properties[i] = nl.item(i).getTextContent();
+			}
+		}
+
 		n = (Node)xpath.evaluate("inputFile", e, XPathConstants.NODE);
 		if (n != null)
 		{
@@ -103,6 +115,25 @@ public class RunConfiguration {
 		return arguments;
 	}
 	
+	/**
+	 * Set the array of properties to be used when running a program.
+	 * @param newArgs
+	 */
+	public void setProperties(String[] newProps)
+	{
+		properties = newProps;
+	}
+	
+	/**
+	 * Obtain the arguments array to use for the program.
+	 * Will be null if no properties were configured.
+	 * @return arguments array
+	 */
+	public String[] getProperties()
+	{
+		return properties;
+	}
+		
 	/**
 	 * Get the name of the program.
 	 * @return program name
