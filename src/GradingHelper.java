@@ -100,6 +100,7 @@ public class GradingHelper {
 				AssignmentResults ar = new AssignmentResults(e.getName(), usersToFullName.get(e.getName()), e);
 				results.add(ar);
 				ar.findFiles(e);
+				ar.readOtherFilesContents();
 				ar.findSubmissionDate(dueDate);
 				ar.copyJavaFilesToUser();
 				ar.showRequestedJavaFiles(programs);
@@ -196,7 +197,19 @@ public class GradingHelper {
 		}
 		reportFileWriter.flush();
 	}
-	
+
+	/**
+	 * Determine the closest matches between submissions.
+	 */
+	public void findClosestMatches()
+	{
+		for (AssignmentResults ar : results)
+		{
+			System.out.println("Checking closest matches for submission for " + ar.getName());
+			ar.findClosestMatchesInAllSubmissions(results);
+		}
+	}
+
 	/**
 	 * @param args - Directory to analyze for student submissions
 	 */
@@ -213,6 +226,7 @@ public class GradingHelper {
 			gh.readConfiguration();
 			gh.openReportFile();
 			gh.processDirectory();
+			gh.findClosestMatches();
 			gh.reportResults();
 			gh.closeReportFile();
 		}

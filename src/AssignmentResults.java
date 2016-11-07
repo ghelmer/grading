@@ -19,6 +19,7 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,6 +35,7 @@ import org.xml.sax.SAXException;
  *
  */
 public class AssignmentResults implements Comparable<AssignmentResults>{
+	public final double SUBMISSION_SIMILARITY_THRESHOLD = 0.75;
 	public final static int MAX_ERROR_OUTPUT_SIZE = 4096;
 	public final static int MAX_STD_OUTPUT_SIZE = 4096;
 	private String name;
@@ -41,9 +43,11 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 	private File dir;
 	private ArrayList<String> userJavaFiles;
 	private HashMap<String, String> requestedUserJavaFilesContents;
+	private HashMap<String, String> otherFilesContents;
 	private ArrayList<String> javaFiles;
 	private ArrayList<String> otherFiles;
 	private ArrayList<String> missingFiles;
+	private TreeMap<String, Double> closestOtherSubmittedFiles;
 	private String compilationOutput;
 	private HashMap<String,String> programOutputs;
 	private Date firstSubmissionDate;
@@ -98,6 +102,8 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		programOutputs = new HashMap<String,String>();
 		userJavaFiles = new ArrayList<String>();
 		requestedUserJavaFilesContents = new HashMap<String, String>();
+		otherFilesContents = new HashMap<String, String>();
+		closestOtherSubmittedFiles = new TreeMap<String, Double>();
 		daysLate = 0;
 	}
 	
@@ -118,6 +124,29 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		}
 		r.append("\n");
 		r.append(separator);
+		
+		// Report unusually-similar submitted files.
+		if (closestOtherSubmittedFiles.size() > 0)
+		{
+			r.append("Closest other submitted files found:\n");
+			for (String key : closestOtherSubmittedFiles.keySet())
+			{
+				r.append(String.format("%s: %.2f%%\n", key, closestOtherSubmittedFiles.get(key) * 100.0));
+			}
+			r.append("\n");
+			r.append(separator);
+		}
+		
+		r.append("Other files found:\n");
+		if (otherFiles != null)
+		{
+			for (String of : otherFiles)
+			{
+				r.append("--- Contents of " + of + " ---\n");
+				r.append(otherFilesContents.get(of));
+				r.append("\n--- End Contents of " + of + " ---\n");
+			}
+		}
 		r.append("Java files found:\n");
 		if (userJavaFiles != null)
 		{
@@ -135,54 +164,6 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 			for (String key : requestedUserJavaFilesContents.keySet())
 			{
 				r.append(requestedUserJavaFilesContents.get(key));
-			}
-		}
-		r.append("Other files found:\n");
-		if (otherFiles != null)
-		{
-			for (String of : otherFiles)
-			{
-				r.append("--- Contents of " + of + " ---\n");
-				try
-				{
-					r.append(getDocumentText(of));
-				}
-				catch (IOException e)
-				{
-					StackTraceElement[] sts = e.getStackTrace();
-					StringBuffer sb = new StringBuffer();
-					sb.append("Exception:\n");
-					for (StackTraceElement st : sts)
-					{
-						sb.append('\t');
-						sb.append(st.toString());
-						sb.append('\n');
-					}
-					r.append("Exception: " + sb.toString());
-				} catch (SAXException e) {
-					StackTraceElement[] sts = e.getStackTrace();
-					StringBuffer sb = new StringBuffer();
-					sb.append("Exception:\n");
-					for (StackTraceElement st : sts)
-					{
-						sb.append('\t');
-						sb.append(st.toString());
-						sb.append('\n');
-					}
-					r.append("SAXException: " + sb.toString());
-				} catch (TikaException e) {
-					StackTraceElement[] sts = e.getStackTrace();
-					StringBuffer sb = new StringBuffer();
-					sb.append("Exception:\n");
-					for (StackTraceElement st : sts)
-					{
-						sb.append('\t');
-						sb.append(st.toString());
-						sb.append('\n');
-					}
-					r.append("TikaException: " + sb.toString());
-				}
-				r.append("\n--- End Contents of " + of + " ---\n");
 			}
 		}
 		if (compilationOutput != null)
@@ -206,6 +187,10 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 			String programOutput = programOutputs.get(pn);
 			if (programOutput != null)
 			{
+				if (programOutput.length() > MAX_STD_OUTPUT_SIZE)
+				{
+					programOutput = programOutput.substring(0, MAX_STD_OUTPUT_SIZE);
+				}
 				r.append(String.format("Output from program %s:\n", pn));
 				r.append(programOutput);
 			}
@@ -251,6 +236,127 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		String s = getFileAsString(outputFile);
 		outputFile.delete();
 		return about + "::\n" + s;
+	}
+	
+	/**
+	 * Get the text for the other files submitted by student.
+	 */
+	public void readOtherFilesContents()
+	{
+		for (String of : otherFiles)
+		{
+			String contents;
+			try
+			{
+				contents = getDocumentText(of);
+			}
+			catch (IOException e)
+			{
+				StackTraceElement[] sts = e.getStackTrace();
+				StringBuffer sb = new StringBuffer();
+				sb.append("Exception:\n");
+				for (StackTraceElement st : sts)
+				{
+					sb.append('\t');
+					sb.append(st.toString());
+					sb.append('\n');
+				}
+				contents = "Exception: " + sb.toString();
+			} catch (SAXException e) {
+				StackTraceElement[] sts = e.getStackTrace();
+				StringBuffer sb = new StringBuffer();
+				sb.append("Exception:\n");
+				for (StackTraceElement st : sts)
+				{
+					sb.append('\t');
+					sb.append(st.toString());
+					sb.append('\n');
+				}
+				contents = "SAXException: " + sb.toString();
+			} catch (TikaException e) {
+				StackTraceElement[] sts = e.getStackTrace();
+				StringBuffer sb = new StringBuffer();
+				sb.append("Exception:\n");
+				for (StackTraceElement st : sts)
+				{
+					sb.append('\t');
+					sb.append(st.toString());
+					sb.append('\n');
+				}
+				contents = "TikaException: " + sb.toString();
+			}
+			otherFilesContents.put(of, contents);
+		}
+	}
+	
+	/**
+	 * Compare this submission's text file contents with the other submission.
+	 * @return TreeMap of closest match (may contain more than one if same score)
+	 */
+	public TreeMap<String, Double> findClosestMatches(AssignmentResults other, double threshold)
+	{
+		TreeMap<String, Double> similarFiles = new TreeMap<>();
+		for (String thisKey : this.otherFilesContents.keySet())
+		{
+			if (!thisKey.endsWith("submission.txt"))
+			{
+				double bestMatch = 0;
+				ArrayList<String> matches = new ArrayList<String>();
+				for (String otherKey : other.otherFilesContents.keySet())
+				{
+					if (!otherKey.endsWith("submission.txt"))
+					{
+						double thisMatch = StringSimilarity.similarity
+								(otherFilesContents.get(thisKey), other.otherFilesContents.get(otherKey));
+						if (thisMatch > bestMatch)
+						{
+							matches.clear();
+							matches.add(thisKey + ":" + other.name + ":" + otherKey);
+							bestMatch = thisMatch;
+						}
+						else if (thisMatch == bestMatch)
+						{
+							matches.add(thisKey + ":" + other.name + ":" + otherKey);
+						}	
+					}
+				}
+				if (bestMatch >= threshold)
+				{
+					for (String s : matches)
+					{
+						similarFiles.put(s, bestMatch);
+					}
+				}
+			}
+		}
+		return similarFiles;
+	}
+	
+	/**
+	 * Find the closest submitted files to this assignment's submission.
+	 */
+	public void findClosestMatchesInAllSubmissions(ArrayList<AssignmentResults> assignments)
+	{
+		double closestMatch = SUBMISSION_SIMILARITY_THRESHOLD;
+		for (AssignmentResults other : assignments)
+		{
+			// Don't check an assignment's own submitted files.
+			if (this != other)
+			{
+				TreeMap<String, Double> closestMatches = findClosestMatches(other, closestMatch);
+				if (closestMatches.size() > 0 &&
+						closestMatches.firstEntry().getValue() > closestMatch)
+				{
+					// Discard lower-scoring files.
+					closestOtherSubmittedFiles.clear();
+					closestMatch = closestMatches.firstEntry().getValue();
+				}
+				for (String key : closestMatches.keySet())
+				{
+					closestOtherSubmittedFiles.put(key, closestMatches.get(key));
+				}
+			}
+		}
 	}
 
 	/**
