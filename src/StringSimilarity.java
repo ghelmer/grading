@@ -8,13 +8,14 @@
 public class StringSimilarity
 {
   /**
-   * Calculates the similarity (a number within 0 and 1) between two strings.
+   * Calculates the similarity (a number within 0 and 1) between two strings, ignoring
+   * whitespace and punctuation.
    * @param s1 - one string
    * @param s2 - another string
    * @return Similarity measure (0 to 1)
    */
   public static double similarity(String s1, String s2) {
-    String longer = s1, shorter = s2;
+    String longer = s1.replaceAll("[[:space:][:punct:]]+", ""), shorter = s2.replaceAll("[[:space:][:punct:]]+", "");
     if (s1.length() < s2.length()) { // longer should always have greater length
       longer = s2; shorter = s1;
     }
