@@ -15,7 +15,7 @@ public class StringSimilarity
    * @return Similarity measure (0 to 1)
    */
   public static double similarity(String s1, String s2) {
-    String longer = s1.replaceAll("[[:space:][:punct:]]+", ""), shorter = s2.replaceAll("[[:space:][:punct:]]+", "");
+    String longer = s1.replaceAll("(\\p{Space}|\\p{Punct})+", ""), shorter = s2.replaceAll("(\\p{Space}|\\p{Punct})++", "");
     if (s1.length() < s2.length()) { // longer should always have greater length
       longer = s2; shorter = s1;
     }
