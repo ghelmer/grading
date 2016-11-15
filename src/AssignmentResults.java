@@ -786,17 +786,34 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 	 * @param sourceFiles - Array of files to compile
 	 * @return status
 	 */
-	public boolean compileJavaFiles(File dir) throws IOException, InterruptedException
+	public boolean compileJavaFiles(ProgramInfo[] programs, File dir) throws IOException, InterruptedException
 	{
 		StringBuffer output = new StringBuffer();
 		
 		if (userJavaFiles.size() == 0)
 			return true;
+		String classpath = null;
+		// Search for any classpath settings in the programs. Take the
+		// first specified of any.
+		for (ProgramInfo pi : programs)
+		{
+			classpath = pi.getClasspath();
+			if (classpath != null)
+			{
+				break;
+			}
+		}
 		Runtime r = Runtime.getRuntime();
-		String[] cmd = new String[userJavaFiles.size() + 1];
-		cmd[0] = "javac";
+		String[] cmd = new String[userJavaFiles.size() + 3];
+		int numArgs = 0;
+		cmd[numArgs++] = "javac";
+		if (classpath != null)
+		{
+			cmd[numArgs++] = "-classpath";
+			cmd[numArgs++] = classpath;
+		}
 		for (int i = 1; i <= userJavaFiles.size(); i++)
-			cmd[i] = userJavaFiles.get(i - 1);
+			cmd[numArgs++] = userJavaFiles.get(i - 1);
 		Process result = r.exec(cmd, null, dir);
 		Scanner in = new Scanner(result.getErrorStream());
 		while (in.hasNextLine())
