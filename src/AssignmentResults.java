@@ -804,17 +804,19 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 			}
 		}
 		Runtime r = Runtime.getRuntime();
-		String[] cmd = new String[userJavaFiles.size() + 3];
+		ArrayList<String> cmd = new ArrayList<>();
 		int numArgs = 0;
-		cmd[numArgs++] = "javac";
+		cmd.add("javac");
 		if (classpath != null)
 		{
-			cmd[numArgs++] = "-classpath";
-			cmd[numArgs++] = classpath;
+			cmd.add("-classpath");
+			cmd.add(classpath);
 		}
 		for (int i = 1; i <= userJavaFiles.size(); i++)
-			cmd[numArgs++] = userJavaFiles.get(i - 1);
-		Process result = r.exec(cmd, null, dir);
+			cmd.add(userJavaFiles.get(i - 1));
+		String[] cmdArray = new String[cmd.size()];
+		cmd.toArray(cmdArray);
+		Process result = r.exec(cmdArray, null, dir);
 		Scanner in = new Scanner(result.getErrorStream());
 		while (in.hasNextLine())
 		{
