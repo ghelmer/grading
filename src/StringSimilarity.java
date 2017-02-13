@@ -21,6 +21,7 @@ public class StringSimilarity
     }
     int longerLength = longer.length();
     if (longerLength == 0) { return 1.0; /* both strings are zero length */ }
+    if (shorter.length() == 0) { return 0.0; /* shorter string is completely different. */ } 
     /* // If you have StringUtils, you can use it to calculate the edit distance:
     return (longerLength - StringUtils.getLevenshteinDistance(longer, shorter)) /
                                (double) longerLength; */
