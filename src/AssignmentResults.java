@@ -391,6 +391,20 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 	}
 
 	/**
+	 * Copy any needed files to the user directory prior to program execution. 
+	 */
+	public void copyFilesToUser(ProgramInfo programs[], File dir) throws IOException
+	{
+		for (ProgramInfo program : programs)
+		{
+			for (CopyFile fileToCopy : program.getFilesToCopy())
+			{
+				fileToCopy.doCopy(dir.getAbsolutePath());
+			}
+		}
+	}
+
+	/**
 	 * Find earliest date of submission in the files.
 	 * If submission date is after the due date, compute the
 	 * number of days late.

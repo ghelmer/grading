@@ -107,6 +107,7 @@ public class GradingHelper {
 				ar.stripPackageFromJavaFiles();
 				if (ar.checkRequiredJavaFiles(programs))
 				{
+					ar.copyFilesToUser(programs, e);
 					if (ar.compileJavaFiles(programs, e))
 					{
 						ar.runJavaPrograms(programs, e);

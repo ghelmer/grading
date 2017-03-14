@@ -6,6 +6,8 @@ import java.io.*;
  *
  */
 public class CopyFile {
+	private File srcFile;
+	private String destBase;
 	public static final int BUFFER_SIZE = 4096;
 
 	public static void copy(File srFile, File dtFile) throws IOException
@@ -25,5 +27,28 @@ public class CopyFile {
 		{
 			dtFile.setLastModified(modTime);
 		}
+	}
+	
+	/**
+	 * Save the source path and destination base to use when distributing
+	 * source files into test program directories.
+	 * @param _srcFile - Source file (full pathname)
+	 * @param _destBase - Destination basename (partial path)
+	 */
+	public CopyFile(File _srcFile, String _destBase)
+	{
+		srcFile = _srcFile;
+		destBase = _destBase;
+	}
+
+	/**
+	 * Copy this object's source file to the given destination path.
+	 * @param destDir - Directory to contain copied file
+	 * @throws IOException
+	 */
+	public void doCopy(String destDir) throws IOException
+	{
+		File destFile = new File(destDir + File.separatorChar + destBase);
+		copy(srcFile, destFile);
 	}
 }

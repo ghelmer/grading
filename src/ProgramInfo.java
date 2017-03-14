@@ -1,5 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import javax.xml.xpath.*;
 
 import org.w3c.dom.Node;
@@ -18,6 +20,7 @@ public class ProgramInfo {
 	private String securityPolicyFile;
 	private AssignmentClasses[] classes;
 	private RunConfiguration[] runConfigurations;
+	private CopyFile[] filesToCopy;
 	
 	/**
 	 * Construct a new ProgramInfo object from the name, classes,
@@ -63,6 +66,24 @@ public class ProgramInfo {
 				showClass = showClassAttribute.getTextContent().equalsIgnoreCase("yes");
 			}
 			classes[i] = new AssignmentClasses(className, showClass);
+		}
+
+		// Get list of files to copy into place, if any.
+		nl = (NodeList)xpath.evaluate("copyFile", program, XPathConstants.NODESET);
+		filesToCopy = new CopyFile[nl.getLength()];
+		for (int i = 0; i < nl.getLength(); i++)
+		{
+			String srcPath = (String)xpath.evaluate("srcPath", nl.item(i), XPathConstants.STRING);
+			String destBase = (String)xpath.evaluate("destBase", nl.item(i), XPathConstants.STRING);
+			if (srcPath != null && destBase != null)
+			{
+				File srcPathFile = new File(srcPath);
+				if (!srcPathFile.exists())
+				{
+					throw new FileNotFoundException("copyFile/srcPath " + srcPath + " does not exist");
+				}
+				filesToCopy[i] = new CopyFile(srcPathFile, destBase);
+			}
 		}
 
 		nl = (NodeList)xpath.evaluate("runConfiguration", program, XPathConstants.NODESET);
@@ -119,5 +140,13 @@ public class ProgramInfo {
 	public AssignmentClasses[] getClasses()
 	{
 		return classes;
+	}
+	
+	/**
+	 * Get the list of files to copy, if any.
+	 */
+	public CopyFile[] getFilesToCopy()
+	{
+		return filesToCopy;
 	}
 }
