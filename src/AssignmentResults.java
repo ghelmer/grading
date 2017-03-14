@@ -299,14 +299,14 @@ public class AssignmentResults implements Comparable<AssignmentResults>{
 		for (String thisKey : this.otherFilesContents.keySet())
 		{
 			if (!thisKey.endsWith("submission.txt") &&
-					!thisKey.equals("database.properties"))
+					!thisKey.endsWith("database.properties"))
 			{
 				double bestMatch = 0;
 				ArrayList<String> matches = new ArrayList<String>();
 				for (String otherKey : other.otherFilesContents.keySet())
 				{
 					if (!otherKey.endsWith("submission.txt") &&
-							!thisKey.equals("database.properties"))
+							!thisKey.endsWith("database.properties"))
 					{
 						double thisMatch = StringSimilarity.similarity
 								(otherFilesContents.get(thisKey), other.otherFilesContents.get(otherKey));
