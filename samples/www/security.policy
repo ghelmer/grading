@@ -1,0 +1,73 @@
+// Grant everyone the following permission:
+// http://docs.oracle.com/javase/7/docs/technotes/guides/security/PolicyFiles.html
+grant { 
+  // Can use ${grading.base} as the directory containing the grading directories
+  permission java.io.FilePermission "${grading.base}${/}TestingInputs${/}*", "read" ;
+  // To read properties file from jsoup-1.10.1.jar:
+  permission java.io.FilePermission "${grading.base}${/}*", "read" ;
+
+  // To load libraries for HTTPS
+  permission java.lang.RuntimePermission "loadLibrary.sunec";
+  permission java.lang.RuntimePermission "loadLibrary.j2pkcs11";
+  permission java.io.FilePermission "/Library/Java/JavaVirtualMachines/-", "read,readlink" ;
+  permission java.io.FilePermission "/Library/Java/Extensions/-", "read,readlink" ;
+  permission java.io.FilePermission "/System/Library/Java/Extensions/-", "read,readlink" ;
+  permission java.io.FilePermission "/System/Library/Java/Support/-", "read,readlink" ;
+  permission java.io.FilePermission "/opt/local/lib/-", "read,readlink" ;
+  permission java.util.PropertyPermission "sun.security.*", "read";
+  permission java.util.PropertyPermission "javax.*", "read";
+  permission java.util.PropertyPermission "java.*", "read";
+  permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2.runtime.reflect";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.security.action";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.security.ec";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.security.internal.interfaces";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.security.internal.rsa";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.security.internal.spec";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.security.rsa";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.security.util";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
+  permission java.security.SecurityPermission "putProviderProperty.SunJCE";
+  permission java.security.SecurityPermission "putProviderProperty.SunPKCS11-NSS";
+  
+  permission java.net.URLPermission "http://www.timeanddate.com/-";
+  permission java.net.URLPermission "https://www.timeanddate.com/-";
+  permission java.net.URLPermission "http://c.tadst.com/-";
+  permission java.net.URLPermission "https://c.tadst.com/-";
+  permission java.net.SocketPermission "www.timeanddate.com:80", "connect" ;
+  permission java.net.SocketPermission "www.timeanddate.com:443", "connect" ;
+  permission java.net.SocketPermission "c.tadst.com:80", "connect" ;
+  permission java.net.SocketPermission "c.tadst.com:443", "connect" ;
+  permission java.net.SocketPermission "*", "resolve" ;
+
+  // Permissions borrowed from Apache Tomcat
+  permission java.util.PropertyPermission "java.home", "read";
+  permission java.util.PropertyPermission "java.naming.*", "read";
+  permission java.util.PropertyPermission "javax.sql.*", "read";
+
+  // OS Specific properties to allow read access
+  permission java.util.PropertyPermission "os.name", "read";
+  permission java.util.PropertyPermission "os.version", "read";
+  permission java.util.PropertyPermission "os.arch", "read";
+  permission java.util.PropertyPermission "file.separator", "read";
+  permission java.util.PropertyPermission "path.separator", "read";
+  permission java.util.PropertyPermission "line.separator", "read";
+
+  // JVM properties to allow read access
+  permission java.util.PropertyPermission "java.version", "read";
+  permission java.util.PropertyPermission "java.vendor", "read";
+  permission java.util.PropertyPermission "java.vendor.url", "read";
+  permission java.util.PropertyPermission "java.class.version", "read";
+  permission java.util.PropertyPermission "java.specification.version", "read";
+  permission java.util.PropertyPermission "java.specification.vendor", "read";
+  permission java.util.PropertyPermission "java.specification.name", "read";
+  permission java.util.PropertyPermission "java.vm.specification.version", "read";
+  permission java.util.PropertyPermission "java.vm.specification.vendor", "read";
+  permission java.util.PropertyPermission "java.vm.specification.name", "read";
+  permission java.util.PropertyPermission "java.vm.version", "read";
+  permission java.util.PropertyPermission "java.vm.vendor", "read";
+  permission java.util.PropertyPermission "java.vm.name", "read";
+
+  // Allow read of JAXP compliant XML parser debug
+  permission java.util.PropertyPermission "jaxp.debug", "read";
+};

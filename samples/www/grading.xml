@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<homework>
+  <name>Homework N</name>
+  <program>
+    <name>GetTimeInCity</name>
+    <securityPolicyFile>/Users/username/Documents/Classes/coursename/Grading/hw7a/security.policy</securityPolicyFile>
+    <class showClass="yes">GetTimeInCity</class>
+    <classpath>/Users/username/Documents/Classes/coursename/Grading/jsoup-1.10.1.jar:.</classpath>
+    <runConfiguration>
+      <name>1</name>
+      <inputFile>/Users/username/Documents/Classes/coursename/Grading/TestingInputs/GetTimeInCity-input1.txt</inputFile>
+    </runConfiguration>
+    <runConfiguration>
+      <name>2</name>
+      <inputFile>/Users/username/Documents/Classes/coursename/Grading/TestingInputs/GetTimeInCity-input2.txt</inputFile>
+    </runConfiguration>
+  </program>
+</homework>

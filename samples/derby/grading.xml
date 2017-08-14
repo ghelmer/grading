@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<homework>
+  <name>Homework N</name>
+  <program>
+    <name>DBAssignment</name>
+    <securityPolicyFile>/Users/username/Documents/Classes/coursename/Grading/hw5a/security.policy</securityPolicyFile>
+    <class showClass="yes">DBMain</class>
+    <class>SimpleDataSource</class>
+    <classpath>/Users/username/Documents/Classes/coursename/Grading/derby.jar:.</classpath>
+    <copyFile>
+      <!-- Copy the database.properties file into the student's submission. -->
+      <srcPath>/Users/username/Documents/Classes/coursename/Grading/TestingInputs/database.properties</srcPath>
+      <destBase>database.properties</destBase>
+    </copyFile>
+    <runConfiguration>
+      <name>1</name>
+      <inputFile>/Users/username/Documents/Classes/coursename/Grading/TestingInputs/ARMgr-input.txt</inputFile>
+      <property>derby.stream.error.file=/Users/username/Documents/Classes/coursename/Grading/TestingInputs/derby.log</property>
+    </runConfiguration>
+  </program>
+</homework>
